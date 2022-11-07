@@ -1,0 +1,52 @@
+---
+title: "output"
+author: "Ito Hiroki"
+date: "8/5/2022"
+output: html_document
+---
+
+```{r, echo = FALSE, results="asis"}
+main <- function(){
+  # lists <- create_folder_name()
+  # print_lists(lists)
+  print_each()
+  
+}
+
+# print_lists <- function(lists_input){
+#   purrr::map(lists_input, print_each)
+# }
+
+# folder_name <- "region_wrap"
+
+print_each <- function(){
+  
+  # folder_name <- "social_increase"
+  
+  # my_path_table = here::here("04_analyze",folder_name,"table")
+  # table_lists <- list.files(path = my_path_table, pattern = "html", full.names = TRUE)
+  
+  my_path_figure = here::here("04.analyze","figure",'control','percentage')
+  
+  
+  figure_lists <- list.files(path = my_path_figure, pattern = "png", 
+                             full.names = TRUE)
+  
+  
+  purrr::map(figure_lists, print_either)
+}
+
+print_either <- function(file_name){
+  file_extension <- tools::file_ext(file_name)
+  
+  if (file_extension == "html"){
+    htmltools::includeHTML(file_name)
+  } else if (file_extension == "png") {
+    htmltools::img(src = knitr::image_uri(file_name))
+  }
+}
+
+
+# source(here::here('01_admin','functions','manipulate_folder.R'))
+main()
+```
