@@ -1,10 +1,29 @@
-col_name <- c("city_id","region_name","city_name","male","female","total","household",
-              "fluctuation","fluctuation_rate","natural_increase","natural_increase_rate",
-              "social_increase","social_increase_rate")
+main <- function(){
+  
+  colname_list <- create_colname_list()
+  
+  
+}
+
+
+create_colname_list <- function(){
+  
+  colname_list <- c("city_id","region_name","city_name","male","female","total","household",
+                "fluctuation","fluctuation_rate","natural_increase","natural_increase_rate",
+                "social_increase","social_increase_rate")
+  
+  return(colname_list)
+  
+}
+
 
 base_year <- 2010
 
-aggregate_pop <- function(col_name){
+test_pop <- change_id(pop)
+
+library(stringr)
+
+aggregate_pop <- function(colname_list){
   
   base_data <- data.frame(matrix(ncol = 14)[0, ])
   
@@ -20,7 +39,7 @@ aggregate_pop <- function(col_name){
 
     }
     
-    colnames(new_data) <- col_name
+    colnames(new_data) <- colname_list
     
     new_data <- new_data %>% 
       dplyr::mutate(year = base_year, .after = city_name)
@@ -37,7 +56,46 @@ aggregate_pop <- function(col_name){
 }
 
 
-pop <- aggregate_pop(col_name)
+five_func <- function(id){
+  
+  new_id <- id
+  
+  num <- nchar(new_id)
+  
+  new_id <- stringr::str_sub(new_id, start = 1, end = num -1)
+  
+  return(new_id)
+}
 
-write.csv(pop, here::here('03.build','aggregate','data','pop_all.csv'),
-                   fileEncoding = "CP932", row.names = FALSE) 
+change_id <- function(new_data){
+  
+  city_id_only <- new_data %>% 
+    select(city_id)
+  
+  city_id_list <- city_id_only %>% 
+    unlist() %>%
+    as.character()
+  
+  new_id_list <- lapply(city_id_list, five_func) %>% 
+    unlist()
+  
+  new_data <- new_data %>% 
+    mutate(city_id = new_id_list) %>% 
+    dplyr::mutate(across(.cols = c(city_id), ~ as.character(.x)))
+  
+  
+  
+  return(new_data)
+  
+}
+
+install.packages("openxlsx")
+library(openxlsx)
+
+pop <- aggregate_pop(colname_list)
+
+
+tt <- read.csv("/Users/ito_hiroki/01.Research/Railway-project/03.build/aggregate/data/pop_all.csv",
+               fileEncoding = "CP932", colClasses = "character")
+
+

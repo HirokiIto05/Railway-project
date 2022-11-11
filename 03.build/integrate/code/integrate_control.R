@@ -1,10 +1,11 @@
 main <- function(){
   
-  main_data <- road_main(1)
+  main_data <- road_main()
   pop_data <- road_pop()
   
   integrated_control <- integrate_id(main_data, pop_data)
   
+  save_table(integrated_control)
   
 }
 
@@ -12,8 +13,9 @@ main <- function(){
 road_main <- function(passenger_num){
   
   new_data <- readxl::read_xlsx(here::here('02.raw','continue.xlsx')) %>% 
-    dplyr::filter(passenger == passenger_num) %>% 
-    na.omit()
+    dplyr::filter(passenger %in% c("1","2","3","4")) 
+  
+  return(new_data)
   
 }
 
@@ -22,8 +24,8 @@ road_main <- function(passenger_num){
 road_pop <- function(){
   
   new_data <- read.csv(here::here('03.build','aggregate','data','pop_all.csv'),
-                       fileEncoding = "CP932") %>% 
-    dplyr::select(-X)
+                       fileEncoding = "CP932", colClasses = "character") %>% 
+    dplyr::mutate(across(.cols = -c(city_id, region_name, city_name), ~ as.numeric(.x)))
   
   new_data$total <- as.numeric(new_data$total)
   
@@ -88,7 +90,7 @@ save_table <- function(integrated_control){
   
 }
 
-save_table(integrated_control)
+# save_table(integrated_control)
 
 
 library(dplyr)

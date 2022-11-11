@@ -1,14 +1,7 @@
-all_average <- timing_data %>% 
-  ungroup() %>% 
-  group_by(year) %>% 
-  summarise(mean = mean(percentage, na.rm = TRUE))
 
+treatment_data <- age_treatment
 
-treatment_data <- read.csv(here::here('03.build','integrate','data','treatment_data.csv'),
-                           fileEncoding = "CP932")
-
-control_data <- read.csv(here::here('03.build','integrate','data','control_data.csv'),
-                                   fileEncoding = "CP932")
+control_data <- age_control
 
 all_data <- bind_rows(treatment_data, control_data)
 
@@ -18,20 +11,18 @@ all_data <- all_data %>%
   ungroup()
 
 all_data <- all_data %>%
-
   ungroup() %>% 
   group_by(city_id) %>% 
   dplyr::mutate(cut_off = ifelse((treatment == 1 & treatment_year <= year), 1, 0),
-                .after = treatment) 
-
-average_treatment <- timing_data %>% 
-  group_by(timing) %>% 
-  summarise(mean = mean(percentage, na.rm = TRUE))
+                .after = treatment) %>% 
+  tidyr::replace_na(list(cut_off = 0, treatment = 0, treatment_year = 0))
 
 
 
+# average_treatment <- timing_data %>% 
+#   group_by(timing) %>% 
+#   summarise(mean = mean(percentage, na.rm = TRUE))
 
-colnames(all_data)
 
 omit_data <- all_data %>% 
   drop_na() %>% 
@@ -39,11 +30,12 @@ omit_data <- all_data %>%
          city_id != "21505")
 
 gsynth.out <- gsynth(
-  formula =  percentage ~ cut_off,
+  formula =  young_percent ~ cut_off,
   data = omit_data,
   index = c("city_id", "year"),
   force = "two-way",
   CV = TRUE,
+  EM = TRUE,
   r = c(0, 5),
   se = TRUE,
   inference = "parametric",
@@ -53,6 +45,7 @@ gsynth.out <- gsynth(
 
 plot(gsynth.out, type = "counterfactual", raw = "all")
 
+library(gsynth)
 
 
 install.packages("gsynth")
