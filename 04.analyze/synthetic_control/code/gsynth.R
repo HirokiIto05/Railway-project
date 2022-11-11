@@ -1,9 +1,12 @@
 
-treatment_data <- age_treatment
+treatment_data <- read.csv(here::here('03.build','age_analysis','data','age_treatment.csv'),
+                           fileEncoding = "CP932") 
 
-control_data <- age_control
+control_data <- read.csv(here::here('03.build','age_analysis','data','age_control.csv'),
+                         fileEncoding = "CP932")
 
-all_data <- bind_rows(treatment_data, control_data)
+all_data <- bind_rows(treatment_data, control_data) 
+
 
 all_data <- all_data %>% 
   dplyr::mutate(treatment = ifelse((treatment_year != 0), 1,0),
@@ -15,7 +18,8 @@ all_data <- all_data %>%
   group_by(city_id) %>% 
   dplyr::mutate(cut_off = ifelse((treatment == 1 & treatment_year <= year), 1, 0),
                 .after = treatment) %>% 
-  tidyr::replace_na(list(cut_off = 0, treatment = 0, treatment_year = 0))
+  tidyr::replace_na(list(cut_off = 0, treatment = 0, treatment_year = 0, 
+                         city_name = "NNN"))
 
 
 
@@ -25,12 +29,18 @@ all_data <- all_data %>%
 
 
 omit_data <- all_data %>% 
-  drop_na() %>% 
   filter(city_id != "17204",
-         city_id != "21505")
+         city_id != "21505",
+         city_id != "12441",
+         city_id != "31325",
+         city_id != "2206",
+         city_id != "43433") %>% 
+  filter(year != 1995)
+
+omit_data[!complete.cases(omit_data),]
 
 gsynth.out <- gsynth(
-  formula =  young_percent ~ cut_off,
+  formula =  young ~ cut_off,
   data = omit_data,
   index = c("city_id", "year"),
   force = "two-way",
@@ -44,6 +54,16 @@ gsynth.out <- gsynth(
 )
 
 plot(gsynth.out, type = "counterfactual", raw = "all")
+
+all_data %>%
+  group_by(city_id) %>%
+  filter(n()>1)
+
+
+gg <- unique(omit_data$city_id)
+length(gg)
+
+114*25
 
 library(gsynth)
 
