@@ -1,7 +1,7 @@
 main <- function(){
   
-  main_data <- road_main()
-  pop_data <- road_pop()
+  main_data <- load_main()
+  pop_data <- load_pop()
   
   integrated_control <- integrate_id(main_data, pop_data)
   
@@ -10,7 +10,7 @@ main <- function(){
 }
 
 
-road_main <- function(passenger_num){
+load_main <- function(passenger_num){
   
   new_data <- readxl::read_xlsx(here::here('02.raw','continue.xlsx')) %>% 
     dplyr::filter(passenger %in% c("1","2","3","4")) 
@@ -21,7 +21,7 @@ road_main <- function(passenger_num){
 
 
 
-road_pop <- function(){
+load_pop <- function(){
   
   new_data <- read.csv(here::here('03.build','aggregate','data','pop_all.csv'),
                        fileEncoding = "CP932", colClasses = "character") %>% 

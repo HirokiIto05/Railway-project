@@ -17,12 +17,6 @@ create_colname_list <- function(){
 }
 
 
-base_year <- 2010
-
-test_pop <- change_id(pop)
-
-library(stringr)
-
 aggregate_pop <- function(colname_list){
   
   base_data <- data.frame(matrix(ncol = 14)[0, ])
@@ -89,13 +83,18 @@ change_id <- function(new_data){
   
 }
 
-install.packages("openxlsx")
-library(openxlsx)
 
-pop <- aggregate_pop(colname_list)
+save_table <- function(data){
+  
+  write.csv(data, file = here::here('03.build','aggregate','data','pop.csv'),
+            fileEncoding = "CP932", row.names = FALSE)
+  
+  
+}
+
+class(cc_data$city_id)
 
 
-tt <- read.csv("/Users/ito_hiroki/01.Research/Railway-project/03.build/aggregate/data/pop_all.csv",
-               fileEncoding = "CP932", colClasses = "character")
+
 
 

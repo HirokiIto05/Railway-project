@@ -1,7 +1,7 @@
 main <- function(){
   
-  treatment_data <- read_data("treatment")
-  control_data <- read_data("control")
+  treatment_data <- load_data("base_treatment.csv")
+  control_data <- load_data("base_control.csv")
   
   all_data <- create_all(treatment_data, control_data)
   
@@ -14,15 +14,17 @@ main <- function(){
   
 }
 
-read_data <- function(group_name){
+load_data <- function(group_name){
   
+  output_data <- read.csv(here::here('03.build','base_percent','data',file_name),
+                          fileEncoding = "CP932") 
+  return(output_data)
+  # folder_name <- here::here('03.build','integrate','data')
+  # file_name <- paste0(group_name,'_data','.csv')
   
-  folder_name <- here::here('03.build','integrate','data')
-  file_name <- paste0(group_name,'_data','.csv')
-  
-  new_data <- read.csv(here::here(folder_name, file_name), fileEncoding = "CP932")
- 
-  return(new_data) 
+  # new_data <- read.csv(here::here(folder_name, file_name), fileEncoding = "CP932")
+  # 
+  # return(new_data) 
 }
 
 
@@ -73,9 +75,5 @@ save_table <- function(timing_data){
   
   
 }
-
-
-
-
 
 

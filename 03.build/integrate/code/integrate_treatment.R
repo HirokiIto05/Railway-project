@@ -1,9 +1,9 @@
 main <- function(){
   
-  main_data <- road_main()
-  pop_data <- road_pop()
+  main_data <- load_main()
+  pop_data <- load_pop()
   
-  pop_data <- change_id(pop_data)
+  # pop_data <- change_id(pop_data)
   
   integrated_treatment <- integrate_id(main_data, pop_data)
   
@@ -11,7 +11,7 @@ main <- function(){
 }
 
 
-road_main <- function(){
+load_main <- function(){
   
   new_data <- readxl::read_xlsx(here::here('02.raw','adjust_local.xlsx'))
   
@@ -19,7 +19,7 @@ road_main <- function(){
   
 }
 
-road_pop <- function(){
+load_pop <- function(){
   
   new_data <- read.csv(here::here('03.build','aggregate','data','pop_all.csv'),
                        fileEncoding = "CP932") 
@@ -31,36 +31,36 @@ road_pop <- function(){
   return(new_data)
 }
 
-five_func <- function(id){
-  
-  new_id <- id
-  
-  num <- nchar(new_id)
-  
-  new_id <- str_sub(new_id, start = 1, end = num -1)
-  
-  return(new_id)
-}
-
-
-change_id <- function(pop_data){
-  
-  city_id_only <- pop_data %>% 
-    select(city_id)
-  
-  city_id_list <- city_id_only %>% 
-    unlist() %>%
-    as.character()
-  
-  new_id_list <- lapply(city_id_list, five_func) %>% 
-    unlist()
-  
-  new_data <- pop_data %>% 
-    mutate(city_id = new_id_list)
-  
-  return(new_data)
-  
-}
+# five_func <- function(id){
+#   
+#   new_id <- id
+#   
+#   num <- nchar(new_id)
+#   
+#   new_id <- str_sub(new_id, start = 1, end = num -1)
+#   
+#   return(new_id)
+# }
+# 
+# 
+# change_id <- function(pop_data){
+#   
+#   city_id_only <- pop_data %>% 
+#     select(city_id)
+#   
+#   city_id_list <- city_id_only %>% 
+#     unlist() %>%
+#     as.character()
+#   
+#   new_id_list <- lapply(city_id_list, five_func) %>% 
+#     unlist()
+#   
+#   new_data <- pop_data %>% 
+#     mutate(city_id = new_id_list)
+#   
+#   return(new_data)
+#   
+# }
 
 
 integrate_id <- function(main_data, pop_data){
@@ -75,11 +75,14 @@ integrate_id <- function(main_data, pop_data){
   
   old_new_number <- main_data %>% 
     dplyr::select(city_id, adjust_id) %>% 
-    na.omit()
+    na.omit() 
   
   current_city_name <- main_data %>% 
     dplyr::filter(city_id %in% current_id) %>% 
     dplyr::select(city_id, city_name, treatment_year)
+  
+  adjust_list$city_id <- as.numeric(adjust_list$city_id)
+  pop_data$city_id <- as.numeric(pop_data$city_id)
   
   pop_old_data <- dplyr::left_join(adjust_list, pop_data, by = "city_id")
   
