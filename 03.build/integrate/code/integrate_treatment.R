@@ -21,7 +21,7 @@ load_main <- function(){
 
 load_pop <- function(){
   
-  new_data <- read.csv(here::here('03.build','aggregate','data','pop_all.csv'),
+  new_data <- read.csv(here::here('03.build','aggregate','data','pop.csv'),
                        fileEncoding = "CP932") 
   
   
@@ -30,37 +30,6 @@ load_pop <- function(){
   
   return(new_data)
 }
-
-# five_func <- function(id){
-#   
-#   new_id <- id
-#   
-#   num <- nchar(new_id)
-#   
-#   new_id <- str_sub(new_id, start = 1, end = num -1)
-#   
-#   return(new_id)
-# }
-# 
-# 
-# change_id <- function(pop_data){
-#   
-#   city_id_only <- pop_data %>% 
-#     select(city_id)
-#   
-#   city_id_list <- city_id_only %>% 
-#     unlist() %>%
-#     as.character()
-#   
-#   new_id_list <- lapply(city_id_list, five_func) %>% 
-#     unlist()
-#   
-#   new_data <- pop_data %>% 
-#     mutate(city_id = new_id_list)
-#   
-#   return(new_data)
-#   
-# }
 
 
 integrate_id <- function(main_data, pop_data){
@@ -94,6 +63,7 @@ integrate_id <- function(main_data, pop_data){
   new_data <- dplyr::summarise(pop_new_data, pop = sum(total),
                                male = sum(male),
                                female = sum(female),
+                               out_migrants = sum(out_migrant),
                                natural_increase = sum(natural_increase),
                                social_increase = sum(social_increase))
   
@@ -103,8 +73,8 @@ integrate_id <- function(main_data, pop_data){
   final_data <- current_city_name %>% 
     left_join(new_data, by = c("city_id" = "adjust_id")) 
   
-  final_data <- final_data %>% 
-    filter(city_id != 45442) 
+  # final_data <- final_data %>% 
+  #   filter(city_id != 45442) 
   
   return(final_data)
 }
