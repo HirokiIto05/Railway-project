@@ -3,12 +3,14 @@ main <- function(){
   main_data <- load_main()
   pop_data <- load_pop()
   
-  integrated_control <- integrate_id(main_data, pop_data)
+  integrated_control <- integrate_id(main_data, age_data)
   
   save_table(integrated_control)
   
 }
 
+class(pop_data$city_id)
+class(adjust_list$city_id)
 
 load_main <- function(passenger_num){
   
@@ -23,7 +25,7 @@ load_main <- function(passenger_num){
 
 load_pop <- function(){
   
-  new_data <- read.csv(here::here('03.build','aggregate','data','pop_all.csv'),
+  new_data <- read.csv(here::here('03.build','aggregate','data','pop.csv'),
                        fileEncoding = "CP932", colClasses = "character") %>% 
     dplyr::mutate(across(.cols = -c(city_id, region_name, city_name), ~ as.numeric(.x)))
   
@@ -36,7 +38,9 @@ load_pop <- function(){
 integrate_id <- function(main_data, pop_data){
   
   adjust_list <- distinct(main_data, city_id) %>% 
-    na.omit()
+    na.omit() 
+  
+  adjust_list$city_id <- as.character(adjust_list$city_id)
   
   current_id <- dplyr::distinct(main_data, adjust_id) %>% 
     na.omit() %>% 
@@ -45,11 +49,17 @@ integrate_id <- function(main_data, pop_data){
   
   old_new_number <- main_data %>% 
     dplyr::select(city_id, adjust_id) %>% 
-    na.omit()
+    na.omit() 
+  
+  old_new_number$city_id <- as.character(old_new_number$city_id)
+  old_new_number$adjust_id <- as.character(old_new_number$adjust_id)
   
   current_city_name <- main_data %>% 
     dplyr::filter(city_id %in% current_id) %>% 
     dplyr::select(city_id, city_name)
+  
+  current_city_name$city_id <- as.character(current_city_name$city_id)
+  
   
   pop_old_data <- dplyr::left_join(adjust_list, pop_data, by = "city_id")
   
@@ -61,6 +71,7 @@ integrate_id <- function(main_data, pop_data){
   new_data <- dplyr::summarise(pop_new_data, pop = sum(total),
                                male = sum(male),
                                female = sum(female),
+                               out_migrants = sum(out_migrant),
                                natural_increase = sum(natural_increase),
                                social_increase = sum(social_increase))
   

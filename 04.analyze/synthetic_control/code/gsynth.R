@@ -3,6 +3,9 @@ main <- function(){
   treatment_data <- load_data("base_treatment.csv")
   control_data <- load_data("base_control.csv")
   
+  # treatment_data <- test
+  # control_data <- test_control
+  
   synth_base <- integrate_data(treatment_data, control_data)
   
   out <- gsynth_func(synth_base)
@@ -43,7 +46,11 @@ integrate_data <- function(treatment_data, control_data){
            city_id != "12441",
            city_id != "31325",
            city_id != "2206",
-           city_id != "43433") %>% 
+           city_id != "43433",
+           city_id != "45442",
+           city_id != "2407",
+           city_id != "15210",
+           city_id != "34209") %>% 
     filter(year != 1995)
   
   
@@ -52,8 +59,10 @@ integrate_data <- function(treatment_data, control_data){
 
 gsynth_func <- function(synth_base){
   
+  # variable <- rlang::enquo(variable)
+  
   gsynth.out <- gsynth(
-    formula =  percent ~ cut_off,
+    formula =   ~ cut_off,
     data = synth_base,
     index = c("city_id", "year"),
     force = "two-way",
@@ -66,18 +75,20 @@ gsynth_func <- function(synth_base){
     parallel = F # TRUE
   )
   
-  plot(gsynth.out, type = "counterfactual", raw = "all")
+  # plot(gsynth.out, type = "counterfactual", raw = "all")
   
   return(gsynth.out)
   
 }
 
-plot(out, type = "loadings")
+plot(out, type = "counterfactual", raw = "all")
+
+plot(out, type = "raw", xlab = "Year", ylab = "working_pop")
 
 save()
 
 file_name <- paste0(here::here('04.analyze','synthetic_control', 'figure',
-                               'all','gsynth.pdf'))
+                               'all','gsynth_pop.pdf'))
 
 ggsave(p, filename = file_name)
 
@@ -86,3 +97,4 @@ p <- plot(out, type = "counterfactual", raw = "all")
 sort(out$wgt.implied[,8])
 
 library(gsynth)
+

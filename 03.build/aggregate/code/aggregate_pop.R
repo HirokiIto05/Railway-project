@@ -7,15 +7,14 @@ main <- function(){
   output_data <- change_id(pop_data)
   
   save_table(output_data)
-  
-  
+
 }
 
 create_colname_list <- function(){
   
   colname_list <- c("city_id","region_name","city_name","male","female","total","household",
-                    "birth_num", "out_migrant" ,"mortality_num","fluctuation","fluctuation_rate",
-                    "natural_increase","natural_increase_rate","social_increase","social_increase_rate")
+                    "birth", "move_out" ,"mortality","change","change_rate",
+                    "natural","natural_rate","social","social_rate")
   
   return(colname_list)
   
@@ -49,8 +48,11 @@ aggregate_pop <- function(colname_list){
     base_data <- rbind(base_data, new_data)
     
   }
+    
+  output_data <- base_data %>% 
+    drop_na(any_of("city_id"))
   
-  return(base_data)
+  return(output_data)
   
 }
 
@@ -61,27 +63,31 @@ five_func <- function(id){
   
   num <- nchar(new_id)
   
-  new_id <- stringr::str_sub(new_id, start = 1, end = num -1)
+  start_num <- stringr::str_sub(new_id, 1, 1)
+    
+  if (start_num == "0"){
+    new_id <- stringr::str_sub(new_id, start = 2, end = num -1)
+  } else if(start_num != "0"){
+    new_id <- stringr::str_sub(new_id, start = 1, end = num -1)
+  }
+  
   
   return(new_id)
 }
 
 change_id <- function(new_data){
   
-  city_id_only <- new_data %>% 
-    select(city_id)
-  
-  city_id_list <- city_id_only %>% 
+  city_id_list <- new_data %>% 
+    select(city_id) %>% 
     unlist() %>%
-    as.character()
+    as.character() 
   
-  new_id_list <- lapply(city_id_list, five_func) %>% 
+  new_id_list <- purrr::map(city_id_list, five_func) %>% 
     unlist()
   
   new_data <- new_data %>% 
     mutate(city_id = new_id_list) %>% 
     dplyr::mutate(across(.cols = c(city_id), ~ as.character(.x)))
-  
   
   
   return(new_data)
@@ -96,10 +102,5 @@ save_table <- function(data){
   
   
 }
-
-class(cc_data$city_id)
-
-
-
 
 

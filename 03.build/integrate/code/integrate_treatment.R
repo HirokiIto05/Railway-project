@@ -5,7 +5,8 @@ main <- function(){
   
   # pop_data <- change_id(pop_data)
   
-  integrated_treatment <- integrate_id(main_data, pop_data)
+  integrated_treatment <- integrate_id(main_data, age_data)
+  integrated_control <- integrate_id()
   
   
 }
@@ -60,15 +61,20 @@ integrate_id <- function(main_data, pop_data){
     dplyr::group_by(adjust_id, year)
   
   
-  new_data <- dplyr::summarise(pop_new_data, pop = sum(total),
-                               male = sum(male),
-                               female = sum(female),
-                               out_migrants = sum(out_migrant),
-                               natural_increase = sum(natural_increase),
-                               social_increase = sum(social_increase))
+  new_data <- dplyr::summarise(pop_new_data, 
+                               working = sum(working)
+                               # sum(total),
+                               # male = sum(male),
+                               # female = sum(female),
+                               # out_migrants = sum(out_migrant),
+                               # natural_increase = sum(natural_increase),
+                               # social_increase = sum(social_increase),
+                               )
+  
+  new_data$working <- as.numeric(new_data$working)
   
   new_data <- new_data %>% 
-    mutate(percentage = (social_increase/lag(pop))*100)
+    mutate(percentage = ((working - lag(working))/lag(working))*100)
   
   final_data <- current_city_name %>% 
     left_join(new_data, by = c("city_id" = "adjust_id")) 
