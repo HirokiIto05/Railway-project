@@ -125,7 +125,8 @@ data <- fin_age
 
 save_table <- function(data){
   
-  write.csv(data, here::here('03.build', 'city_adjust', 'data', 'age_data.csv'))
+  write.csv(data, here::here('03.build', 'city_adjust', 'data', 'age_data.csv'),
+            fileEncoding = "CP932", row.names = FALSE)
   
 }
 
