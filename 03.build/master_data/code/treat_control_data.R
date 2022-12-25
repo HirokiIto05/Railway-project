@@ -19,15 +19,15 @@ load_data <- function(folder_name, file_name){
   
 }
 
-add_working <- function(pop_data){
+add_middle_age <- function(pop_data){
   
   output_data <- pop_data %>% 
     dplyr::group_by(city_id,year) %>% 
-    dplyr::mutate(working = sum(r20_24,r25_29,
-                                r30_34,r35_39,
-                                r40_44,r45_49,
-                                r50_54,r55_59,
-                                r60_64)) %>% 
+    dplyr::mutate(middle = sum(r20_24,r25_29,
+                               r30_34,r35_39,
+                               r40_44,r45_49,
+                               r50_54,r55_59,
+                               r60_64)) %>% 
     dplyr::ungroup()
   return(output_data)
   
@@ -52,7 +52,7 @@ treatment_only <- function(main_data, pop_data){
   output_data <- dplyr::left_join(pop_treatment, main_data, by = c("city_id")) 
   
   output_data <- output_data %>% 
-    add_working()
+    add_middle_age()
   
   file_name <- paste0(here::here('03.build','master_data', 'data', 'treatment_data.csv'))
   
@@ -84,7 +84,7 @@ control_only <- function(main_data, pop_data){
   output_data <- dplyr::left_join(pop_control, main_data, by = c("city_id"))
   
   output_data <- output_data %>% 
-    add_working()
+    add_middle_age()
   
   file_name <- paste0(here::here('03.build','master_data', 'data', 'control_data.csv'))
   
@@ -94,3 +94,4 @@ control_only <- function(main_data, pop_data){
   return(output_data)
   
 }
+

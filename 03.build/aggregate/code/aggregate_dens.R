@@ -41,7 +41,7 @@ read_len_data <- function(){
                        fileEncoding = "CP932")
   
   new_data <- new_data %>% 
-    tidyr::replace_na( list(rail_name = 0))
+    tidyr::replace_na(list(rail_name = 0))
   
   new_data <- connect_fun(new_data)
   

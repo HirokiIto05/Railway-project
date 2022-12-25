@@ -8,13 +8,27 @@ main <- function(){
   treat_city_id <-unlist(distinct(treatment_data, city_id)) %>% 
     as.character()
   
-  timing_data <- create_lead_lag(treatment_data, treat_city_id)
+  timing_data <- create_lead_lag(percent_treatment, treat_city_id)
   
   save_table(timing_data)
   
 }
 
-load_data <- function(group_name){
+mean_timing <- group_by(timing_data, timing) %>% 
+  summarise(outcome = mean(percent))
+
+
+pp <- ggplot(mean_timing, aes(x = timing, y = outcome)) +
+  geom_point() + 
+  geom_line()
+
+ggsave(pp, filename = "/Users/ito_hiroki/01.Research/Railway-project/04.analyze/table/cutoff_zero.pdf")
+
+install.packages("panelView")
+library(panelView)
+
+
+load_data <- function(file_name){
   
   output_data <- read.csv(here::here('03.build','base_percent','data',file_name),
                           fileEncoding = "CP932") 
