@@ -1,7 +1,7 @@
 main <- function(){
   
-  treatment_data <- load_data('master_data', 'treatment_data.csv')
-  control_data <- load_data('master_data', 'control_data.csv')
+  treatment_data <- load_data('complete', 'treatment_data.csv')
+  control_data <- load_data('complete', 'control_data.csv')
   
   master_data <- create_master(treatment_data, control_data)
   
@@ -11,9 +11,15 @@ main <- function(){
   
   stat_table
   
-  
-  
 }
+
+
+tt <- treatment_data %>% 
+  dplyr::filter(treatment_year <= 2015) %>% 
+  dplyr::filter(city_id != 21403,
+                city_id != 21421)  
+
+
 
 
 load_data <- function(folder_name, file_name){
@@ -46,39 +52,50 @@ add_variable <- function(input_data){
     dplyr::mutate(over_65 = sum(r65_69,
                                 r70_74,r75_79,
                                 r80_over)) %>% 
-    dplyr::mutate(elderly_rate = (over_65/total)*100) %>% 
+    dplyr::mutate(elderly_rate = (over_65/total)) %>% 
     dplyr::ungroup()
   
   return(output_data)
   
 }
 
+tt <- treatment_data %>% 
+  distinct(city_id)
+
+treatment_five <- treatment_data %>% 
+  dplyr::filter(treatment_year <= 2015)
+
+treatment_five %>% 
+  distinct(city_id)
 
 create_table <- function(master_data){
   
   
-  master_data <- master_data %>% 
+  master_base_table <- master_data %>% 
     dplyr::group_by(dummy)
-
-  mean(treatment_data$total)
   
-  master_table <- master_data %>% 
+  master_table <- master_base_table %>% 
     dplyr::summarise(
       N = n_distinct(city_id),
-      max_total = max(total),
-      min_total = min(total),
-      total  = mean(total),
-      household = mean(household),           
-      birth  = mean(birth),         
-      move_out = mean(move_out),
-      working = mean(working),
-      over_65 = mean(over_65),
-      elderly_rate = mean(elderly_rate)
+      max_pop = max(total, na.rm = TRUE),
+      min_pop = min(total, na.rm = TRUE),
+      pop  = mean(total, na.rm = TRUE),
+      household = mean(household, na.rm = TRUE),           
+      working = mean(workforce_percent, na.rm = TRUE),
+      elderly_rate = mean(elderly_rate, na.rm = TRUE)
       )
   
 
-  test <- apply(master_table, 1, round) %>% 
-    as_tibble()
+  t_master_table <- (master_table)
+  
+  str(t_master_table)
+  
+  colnames(t_master_table) <- c("control", "treatment")
+  
+  t_master_table <- t_master_table %>% 
+    dplyr::relocate(treatment, .before = control) 
+    
+  
   
   
   tidy_table <- master_table %>% 

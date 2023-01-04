@@ -9,7 +9,6 @@ main <- function(){
   
 }
 
-year_n <- 2005
 
 read_child_csv <- function(year_n){
   
@@ -41,7 +40,7 @@ read_child_csv <- function(year_n){
 }
 
 
-save_csv(all_children_data, "children_six", "all.csv")
+write.csv(all_children_data, )
 
 
 

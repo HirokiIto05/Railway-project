@@ -10,7 +10,7 @@ main <- function(){
     dplyr::filter(treatment_year <= 2010,
                   city_id != 21403,
                   city_id != 21421)  
-    
+  
   
   control_data <- load_csv('complete', 'control_data.csv') %>% 
     dplyr::filter(passenger <= 1)
@@ -21,10 +21,18 @@ main <- function(){
     dplyr::mutate(cut_off = ifelse((dummy == 1 & treatment_year <= year), 1, 0),
                   .after = city_id) 
   
+  master_data <- master_data %>% 
+    group_by(city_id) %>% 
+    dplyr::mutate(middle_percent = (((middle -dplyr::lag(middle)) / dplyr::lag(middle))*100),
+                  .after = middle)
+  
   purrr::map(treatment_id_lists, map_synth, master_data)
+  
+  help(mutate)
   
 }
 
+id_n <-  1549
 
 map_synth <- function(id_n, master_data){
   
@@ -33,20 +41,22 @@ map_synth <- function(id_n, master_data){
   synth_data <- synth_ready(id_n, master_data)
   
   synth_data <- synth_data %>% 
-    dplyr::mutate(rep_outcome = outcome_percent) 
-
+    dplyr::mutate(rep_outcome = middle_percent) 
+  
   treatment_one <- synth_data %>% 
     dplyr::filter(dummy == 1) 
   int_year <- unique(treatment_one$treatment_year)
   
+  
+  
   print(id_n)
   
-  # synth_data <- lag_covariates(synth_data)
+  synth_data <- lag_covariates(synth_data)
   
   output_synth <- synth_data %>%
     
     synthetic_control(
-      outcome = outcome_percent, 
+      outcome = middle_percent, 
       unit = city_id, 
       time = year, 
       i_unit = id_n, 
@@ -54,21 +64,21 @@ map_synth <- function(id_n, master_data){
       generate_placebos=T 
     ) %>%
     
-    generate_predictor(time_window = 1995:int_year - 1,
+    generate_predictor(time_window = 1996:int_year - 1,
                        children = mean(children_household_percent, na.rm = TRUE),
                        own = mean(own_household_percent, na.rm = TRUE),
                        workforce = mean(workforce_percent, na.rm = TRUE),
                        student = mean(student_percent, na.rm = TRUE),
                        train = mean(train_pop_percent, na.rm = TRUE)) %>% 
     
-    generate_predictor(time_window = 1995,
+    generate_predictor(time_window = 1996,
                        outcome_start_year = rep_outcome) %>%
     generate_predictor(time_window = int_year - 5,
                        outcome_five_year = rep_outcome) %>%
     generate_predictor(time_window = int_year -1,
                        cigsale_last_year = rep_outcome) %>%
     
-    generate_weights(optimization_window = 1995:int_year - 1, 
+    generate_weights(optimization_window = 1996:int_year - 1, 
                      margin_ipop = .02,sigf_ipop = 7,bound_ipop = 6
     ) %>% 
     generate_control()
@@ -84,7 +94,7 @@ map_synth <- function(id_n, master_data){
          x = "year") 
   
   # p
-    
+  
   file_city_name <- synth_data %>% 
     dplyr::filter(dummy == 1) %>% 
     dplyr::distinct(city_id) %>%
@@ -96,10 +106,10 @@ map_synth <- function(id_n, master_data){
   pdf_name <- paste0( city_name_t,'.png')
   
   file_name_figure <- paste0(here::here('04.analyze','synthetic_control', 'figure',
-                                        'synth_cov', 'density_1000','plot', pdf_name))
+                                        'percent','plot', pdf_name))
   
   file_name_table <- paste0(here::here('04.analyze','synthetic_control', 'figure',
-                                       'synth_cov', 'density_1000','table', table_name))
+                                       'percent','table', table_name))
   
   ggsave(p, filename = file_name_figure)
   
@@ -126,12 +136,12 @@ synth_ready <- function(id_n, master_data){
   
   treatment_ready <- treatment_ready %>% 
     dplyr::mutate(outcome_percent = middle/base_num)
-
+  
   control_ready <- master_data %>% 
     dplyr::filter(dummy == 0) 
   
   control_city_id <- unique(control_ready$city_id)
-    
+  
   control_ready <- purrr::map(control_city_id, calculate_control, control_ready,  int_year) %>% 
     dplyr::bind_rows()
   
@@ -140,7 +150,7 @@ synth_ready <- function(id_n, master_data){
   return(synth_base_data)
   
 }
-  
+
 calculate_control <- function(id_c, control_ready, int_year){
   
   control_one <- control_ready %>% 
@@ -180,7 +190,7 @@ lag_covariates <- function(synth_data){
     dplyr::filter(year != 1995)
   
   return(joint_data)
-    
+  
 }
 
 
@@ -188,4 +198,5 @@ lag_covariates <- function(synth_data){
 library(tidysynth)
 library(ggplot2)
 library(grDevices)
+
 
