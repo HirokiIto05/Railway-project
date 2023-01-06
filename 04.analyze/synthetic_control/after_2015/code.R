@@ -1,8 +1,5 @@
 main <- function(){
   
-  pop_data <- load_data("city_adjust","all_data.csv") %>% 
-    dplyr::mutate(city_id = as.character(city_id)) 
-  
   main_data <- readxl::read_xlsx(here::here('02.raw','main','main_data.xlsx')) %>% 
     dplyr::select(-old_id, -old_name)
   
@@ -41,8 +38,6 @@ map_synth <- function(id_n, master_data){
   
   print(id_n)
   
-  # synth_data <- lag_covariates(synth_data)
-  
   output_synth <- synth_data %>%
     
     synthetic_control(
@@ -62,12 +57,12 @@ map_synth <- function(id_n, master_data){
                        train = mean(train_pop_percent, na.rm = TRUE),
                        house_20year = mean(houseyear_pop_percent, na.rm =TRUE)) %>% 
     
-    generate_predictor(time_window = 1995:int_year -1,
-                       outcome_ave = mean(rep_outcome, na.rm = TRUE)) %>%
-    # generate_predictor(time_window = int_year - 5,
-    #                    outcome_five_year = rep_outcome) %>%
-    # generate_predictor(time_window = int_year -1,
-    #                    cigsale_last_year = rep_outcome) %>%
+    generate_predictor(time_window = 1995,
+                       outcome_start = mean(rep_outcome, na.rm = TRUE)) %>%
+    generate_predictor(time_window = int_year - 5,
+                       outcome_five_year = rep_outcome) %>%
+    generate_predictor(time_window = int_year -1,
+                       cigsale_last_year = rep_outcome) %>%
     
     generate_weights(optimization_window = 1995:int_year - 1, 
                      margin_ipop = .02,sigf_ipop = 7,bound_ipop = 6
@@ -162,27 +157,27 @@ calculate_control <- function(id_c, control_ready, int_year){
 }
 
 
-lag_covariates <- function(synth_data){
-  
-  year_former_list <- seq(1995,1999)
-  year_latter_list <- seq(2000, 2019)
-  
-  output_data <- synth_data %>% 
-    dplyr::filter(year %in% year_former_list) %>% 
-    dplyr::mutate(children_household_percent = dplyr::lag(children_household_percent),
-                  own_household_percent = dplyr::lag(own_household_percent), 
-                  workforce_percent = dplyr::lag(workforce_percent), 
-                  student_percent = dplyr::lag(student_percent))
-  
-  latter_df <- synth_data %>% 
-    dplyr::filter(year %in% year_latter_list)
-  
-  joint_data <- dplyr::bind_rows(output_data, latter_df) %>% 
-    dplyr::filter(year != 1995)
-  
-  return(joint_data)
-  
-}
+# lag_covariates <- function(synth_data){
+#   
+#   year_former_list <- seq(1995,1999)
+#   year_latter_list <- seq(2000, 2019)
+#   
+#   output_data <- synth_data %>% 
+#     dplyr::filter(year %in% year_former_list) %>% 
+#     dplyr::mutate(children_household_percent = dplyr::lag(children_household_percent),
+#                   own_household_percent = dplyr::lag(own_household_percent), 
+#                   workforce_percent = dplyr::lag(workforce_percent), 
+#                   student_percent = dplyr::lag(student_percent))
+#   
+#   latter_df <- synth_data %>% 
+#     dplyr::filter(year %in% year_latter_list)
+#   
+#   joint_data <- dplyr::bind_rows(output_data, latter_df) %>% 
+#     dplyr::filter(year != 1995)
+#   
+#   return(joint_data)
+#   
+# }
 
 
 # install.packages("tidysynth")

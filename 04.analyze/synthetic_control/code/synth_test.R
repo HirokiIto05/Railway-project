@@ -6,4 +6,3 @@ output_synth %>% plot_placebos()
 
 output_synth %>% grab_synthetic_control()
 
-output_synth <- base_plot
