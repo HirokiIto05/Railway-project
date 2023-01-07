@@ -6,3 +6,4 @@ output_synth %>% plot_placebos()
 
 output_synth %>% grab_synthetic_control()
 
+unique(treatment_data$city_name)

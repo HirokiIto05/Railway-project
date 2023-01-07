@@ -21,6 +21,12 @@ main <- function(){
   
 }
 
+treatment_year_arrange <- treatment_data %>% 
+  arrange(treatment_year) %>% 
+  relocate(treatment_year, .after = year) %>% 
+  relocate(line_name, .before = city_name) %>% 
+  relocate(year, .before = city_id) 
+
 
 
 read_control_data <- function(){
