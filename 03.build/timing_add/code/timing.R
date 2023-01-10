@@ -16,7 +16,38 @@ main <- function(){
   
   master_timing <- purrr::map(treatment_name_list, add_timing,
                                 treatment_ready) %>% 
-    dplyr::bind_rows()
+    dplyr::bind_rows() %>% 
+    dplyr::select(city_name, city_id, year,
+                  outcome_percent,
+                  timing, children_household_percent,
+                  own_household_percent,
+                  train_pop_percent,
+                  workforce_percent,
+                  student_percent,
+                  houseyear_pop_percent) %>% 
+    dplyr::filter(timing >= -12 & timing <= 12) 
+  
+  
+  average_treatment <- master_timing %>% 
+    dplyr::ungroup() %>% 
+    dplyr::group_by(timing) %>% 
+    dplyr::summarise(timing = timing,
+                     outcome = mean(outcome_percent, 
+                                    na.rm = TRUE),
+                     children_covariate = mean(children_household_percent, 
+                                               na.rm = TRUE),
+                     own_covariate = mean(own_household_percent, 
+                                          na.rm = TRUE),
+                     train_covariate = mean(train_pop_percent, 
+                                            na.rm = TRUE),
+                     workforce_covariate = mean(workforce_percent, 
+                                                na.rm = TRUE),
+                     student_covariate = mean(student_percent, 
+                                              na.rm = TRUE),
+                     houseyear_covariate = mean(houseyear_pop_percent, 
+                                                na.rm = TRUE)) %>% 
+    dplyr::distinct()
+  
   
   
   synth_timing <- master_timing %>% 
@@ -139,7 +170,7 @@ for(i in seq(-20, 17)){
 
 synth_ready <- function(name_t, treatment_data){
   
-  treatment_ready <- master_data %>% 
+  treatment_ready <- treatment_data %>%
     dplyr::filter(city_name == name_t)
   
   int_year <- unique(treatment_ready$treatment_year)

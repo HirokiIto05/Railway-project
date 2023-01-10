@@ -1,8 +1,5 @@
 main <- function(){
   
-  pop_data <- load_data("city_adjust","all_data.csv") %>% 
-    dplyr::mutate(city_id = as.character(city_id)) 
-  
   main_data <- readxl::read_xlsx(here::here('02.raw','main','main_data.xlsx')) %>% 
     dplyr::select(-old_id, -old_name)
   
