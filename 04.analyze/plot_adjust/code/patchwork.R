@@ -6,8 +6,7 @@ treatment_data <- load_csv("complete", "treatment_data.csv")
 plot_2 <- read_plot("常呂郡置戸町")
 plot_3 <- read_plot("中川郡本別町")
 plot_4 <- read_plot("足寄郡足寄町")   
-plot_5 <- read_plot("足寄郡陸別町", treatment_data)
-plot_6 <- read_plot("上北郡七戸町", treatment_data)
+
 plot_7 <- read_plot("行方市")
 plot_8 <- read_plot("輪島市")
 plot_9 <- read_plot("珠洲市")
@@ -23,6 +22,9 @@ plot_1 <- read_plot("常呂郡訓子府町")
 purrr::map(treatment_name_lists, read_plot)
 
 city_name_t <- "足寄郡陸別町"
+
+
+plot_5
 
 read_plot <- function(city_name_t, treatment_data){
   
@@ -41,10 +43,14 @@ read_plot <- function(city_name_t, treatment_data){
     dplyr::filter(city_name == city_name_t)
   
   int_year <- unique(int_year$treatment_year)
-  
-  output_plot <- ggplot(tt, aes(time_unit)) +
-    geom_line(aes(y = real_y)) +
-    geom_line(aes(y = synth_y), linetype="dashed", size = 0.5) +
+
+  output_plot <- ggplot(tt) +
+    geom_line(aes(x = time_unit ,y = real_y,  linetype = "real_y")) +
+    geom_line(aes(x = time_unit,y = synth_y, linetype = "synth_y"), size = 0.5) +
+    scale_linetype_manual(name = "value" ,values = c("real_y" = "solid",
+                                     "synth_y" = "dashed")) +
+    scale_color_manual(values = c("real_y" = "black",
+                                  "synth_y" = "black")) +
     geom_point(aes(x = time_unit, y = real_y), size = 1.1)+
     geom_vline(xintercept = int_year - 0.5, linetype = "dotted", size = 0.8) +
     labs(title = title_id,
@@ -56,8 +62,10 @@ read_plot <- function(city_name_t, treatment_data){
           axis.title.x = element_blank(),
           axis.title.y = element_blank()) +
     scale_y_continuous(breaks = seq(0.6,1.4, 0.2)) +
-    scale_x_continuous(breaks = seq(1995,2015,5))
+    scale_x_continuous(breaks = seq(1995,2015,5)) 
   
+  
+  output_plot
   
   # pdf_name <- paste0(city_name_t, ".png")
   # 
@@ -72,25 +80,19 @@ read_plot <- function(city_name_t, treatment_data){
   
 }
 
-first_group <-  (plot_1 | plot_2) / (plot_3 | plot_4)
+plot_5 <- read_plot("足寄郡陸別町", treatment_data)
+plot_6 <- read_plot("上北郡七戸町", treatment_data)
 
-library(patchwork)
+plot_5
 
-first_group <-  (plot_6 | plot_5)
+first_group <-  (plot_6 | plot_5) +
+  plot_layout(guides = 'collect')
+
 first_group
 
-second_group <- (plot_4 | plot_5 | plot_6) 
-third_group <- (plot_7 | plot_8 | plot_9) 
-four_group <- (plot_10 | plot_11 | plot_12)
-five_group <- (plot_13 | plot_14 | plot_15)
-
-
-second_group <- (plot_5 | plot_6) / (plot_7 | plot_8)
-third_group <- (plot_9 | plot_10) / (plot_11| plot_12)
-
 ggsave(first_group, filename = here::here('04.analyze','synthetic_control', 
-                                          'after_2015', 'two_plot','two_graph.pdf'),
-       device = cairo_pdf,  width = 12, height = 6)
+                                          'after_2015', 'two_plot','two_graph.png'),
+       device = "png",  width = 12, height = 6)
 
 install.packages("Cairo")
 library(Cairo)

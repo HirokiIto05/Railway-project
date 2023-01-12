@@ -1,11 +1,23 @@
 main <- function(){
   
-  
   treatment_data <- load_csv('complete', 'treatment_data.csv') %>% 
     dplyr::filter(treatment_year <= 2015,
-                  city_id != 21403,
-                  city_id != 21421)  
+                  city_name != "揖斐郡大野町",
+                  city_name != "本巣郡北方町",
+                  city_name != "珠洲市",
+                  city_name != "能登町"
+    )   
+  
+  treatment_diff_data <- read.csv(here::here('04.analyze',
+                                             'synthetic_control',
+                                             'after_2015',
+                                             'diff_ten_data',
+                                             'diff_ten_data.csv'),
+                                  fileEncoding = "CP932") %>% 
+    dplyr::select(city_name, time_unit, treatment_year, diff) %>% 
+    dplyr::rename(year = time_unit)
 
+  
   treatment_name_lists <- unique(treatment_data$city_name)
   
   treatment_name_lists
@@ -17,11 +29,14 @@ main <- function(){
            file = here::here('04.analyze', 
                              'synthetic_control',
                              'after_2015',
-                             'p_value', 'p_value_data.csv'),
+                             'p_value', 
+                             'p_value_data.csv'),
            fileEncoding = "CP932",
            row.names = FALSE)
    
 }
+
+
 
 
 read_synth <- function(city_name_t){
@@ -32,7 +47,7 @@ read_synth <- function(city_name_t){
                                     'after_2015', 'table', file_name))
   
   placebo_data <- synth_based %>% 
-    tidysynth::plot_placebos(prune = FALSE)
+    tidysynth::plot_placebos()
   placebo_data
   
   placebo_data <- placebo_data$data
@@ -112,5 +127,26 @@ calculate_p_value <- function(year_n, treated_mean, each_placebo,
   
 }
 
-
+create_placebo_table <- function(placebo_df, treatment_diff_data){
+  
+  placebo_df <- dplyr::left_join(treated_placebo,
+                                 treatment_diff_data) %>% 
+    dplyr::relocate(treatment_year, .after = year) %>% 
+    dplyr::ungroup() %>% 
+    dplyr::group_by(city_name) %>% 
+    dplyr::filter(year >= treatment_year) %>% 
+    dplyr::distinct() %>% 
+    dplyr::mutate(after = year - treatment_year + 1)
+  
+  write.csv(placebo_df, 
+            file = here::here('04.analyze', 
+                              'synthetic_control',
+                              'after_2015',
+                              'after_placebo_table', 
+                              'p_value_data.csv'),
+            fileEncoding = "CP932",
+            row.names = FALSE)
+  
+  return(ten_year_placebo_df)
+}
   

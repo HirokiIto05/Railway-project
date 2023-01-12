@@ -15,6 +15,13 @@ main <- function(){
     dplyr::bind_rows()
   
   
+  write.csv(diff_all_data, here::here('04.analyze',
+                                      'synthetic_control',
+                                      'after_2015',
+                                      'diff_ten_data',
+                                      'diff_ten_data.csv'),
+            row.names = FALSE, fileEncoding = "CP932")
+  
   
 }
 
@@ -52,42 +59,61 @@ control_city_name <- control_data %>%
 
 
 
+output_plot_five
+
 create_bar_plot <- function(year_i, diff_all_data){
   
   year_bar_df <- diff_all_data %>% 
     mutate(after = time_unit - treatment_year + 1) %>% 
     dplyr::filter(after == 5)
   
-  output_plot <- ggplot(year_bar_df, aes(x = reorder(city_name, diff), y = diff)) +
-    geom_bar(stat = "identity") +
+  output_plot_five <- ggplot(year_bar_df, aes(x = reorder(city_name, diff), y = diff)) +
+    geom_bar(stat = "identity", width = 0.8) +
     coord_flip() +
-    theme_gray(base_family = "HiraKakuPro-W3") 
-    
-  output_plot
-    
-    geom_line(aes(y = real_y)) +
-    geom_line(aes(y = synth_y), linetype="dashed", size = 0.5) +
-    geom_point(aes(x = time_unit, y = real_y), size = 1.1)+
-    geom_vline(xintercept = int_year - 0.5, linetype = "dotted", size = 0.8) +
-    labs(title = title_id,
-         y = "population") +
+    labs(title = "Five year later population",
+         y = "Real Outcome ー Counterfactual Outcome") +
     theme_gray(base_family = "HiraKakuPro-W3") +
-    theme(plot.title = element_text(size = 13),
+    theme(axis.title.y = element_blank(),
+          plot.title = element_text(size = 13),
           axis.text.x = element_text(size = 10),
-          axis.text.y = element_text(size = 10),
-          axis.title.x = element_blank(),
-          axis.title.y = element_blank()) +
-    scale_y_continuous(breaks = seq(0.6,1.4, 0.2)) +
-    scale_x_continuous(breaks = seq(1995,2015,5))
+          axis.text.y = element_text(size = 10)) +
+    ylim(c(-0.1, 0.1))
+    
+  output_plot_five
   
+  file_name_figure <- paste0(here::here('04.analyze','synthetic_control',
+                                        'after_2015',
+                                        'bar_chart', "Five_year_later_bar.png"))
   
-  # pdf_name <- paste0(city_name_t, ".png")
-  # 
-  # file_name_figure <- paste0(here::here('04.analyze','synthetic_control',
-  #                                       'after_2015',
-  #                                       'figure', pdf_name))
+  ggsave(output_plot_five, filename = file_name_figure, width = 4.5, height = 3.2)
   
-  # ggsave(output_plot, filename = file_name_figure)
+    
+  ten_year_bar_df <- diff_all_data %>% 
+    mutate(after = time_unit - treatment_year + 1) %>% 
+    dplyr::filter(after == 10)
+  
+  output_plot_ten <- ggplot(ten_year_bar_df, aes(x = reorder(city_name, diff), y = diff)) +
+    geom_bar(stat = "identity", width = 0.8) +
+    coord_flip() +
+    labs(title = "Ten year later population",
+         y = "Real Outcome ー Counterfactual Outcome") +
+    theme_gray(base_family = "HiraKakuPro-W3") +
+    theme(axis.title.y = element_blank(),
+          plot.title = element_text(size = 13),
+          axis.text.x = element_text(size = 10),
+          axis.text.y = element_text(size = 10)) +
+    ylim(c(-0.1, 0.1))
+  
+  output_plot_ten
+  
+  mean(year_bar_df$diff)*100
+  mean(ten_year_bar_df$diff)*100
+
+  file_name_figure <- paste0(here::here('04.analyze','synthetic_control',
+                                        'after_2015',
+                                        'bar_chart', "Ten_year_later_bar.png"))
+  
+  ggsave(output_plot_ten, filename = file_name_figure, width = 4.5, height = 3.2 *(13/17))
   
   
 }
