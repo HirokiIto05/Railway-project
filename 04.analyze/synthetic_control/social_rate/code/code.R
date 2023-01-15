@@ -5,28 +5,14 @@ main <- function(){
   
   treatment_data <- load_csv('complete', 'treatment_data.csv') %>% 
     dplyr::filter(treatment_year <= 2015,
-                  city_name != "揖斐郡大野町",
-                  city_name != "本巣郡北方町",
-                  city_name != "珠洲市",
-                  city_name != "鳳珠郡能登町",
-                  city_name != "十和田市",
-                  city_name != "行方市"
-    )   
+                  city_id != 21403,
+                  city_id != 21421,
+                  city_id != 17205,# 珠洲市
+                  city_id != 17463,#能登町
+                  city_id != 2206  #十和田市
+    )
   
-  unique(treatment_data$city_name) 
-  
-  aaa <- treatment_data %>% 
-    select(city_name, region_name) %>% 
-    distinct()
-  
-  write.csv(aaa, file = here::here('02.raw','treatment_name_list.csv'),
-            fileEncoding = "CP932", row.names = FALSE)
-  
-  
-  
-  remove_name_list <- c("階上町", "久慈市", "遠野市", "釜石市",
-                        "大槌町", "山田町", "岩泉町", "田野畑村",
-                        "野田村", "洋野町", "猪苗代町")
+  unique(treatment_data$city_name)
   
   control_data <- load_csv('complete', 'control_data.csv') %>% 
     dplyr::filter(passenger <= 1) %>% 
@@ -35,11 +21,7 @@ main <- function(){
                   city_id != 1644, #池田町,
                   city_id != 1649, #十勝郡浦幌町
                   city_id != 1668, #白糠郡白糠町
-                  ) %>% 
-    dplyr::filter(city_name != remove_name_list,
-                  city_name != "遠野市",
-                  city_name != "久慈市",
-                  city_name != "釜石市")
+    ) 
   
   treatment_id_lists <- unique(treatment_data$city_id)
   
@@ -48,7 +30,24 @@ main <- function(){
     dplyr::mutate(cut_off = ifelse((dummy == 1 & treatment_year <= year), 1, 0),
                   .after = city_id) 
   
-  purrr::map(treatment_id_lists, map_synth, master_data)
+  data_not_2013 <- master_data %>% 
+    dplyr::filter(year != 2013)
+  
+  data_2013 <- master_data %>% 
+    dplyr::filter(year == 2013 | year == 2012) %>% 
+    dplyr::mutate(social_rate = social/dplyr::lag(total)) %>% 
+    dplyr::filter(year == 2013)
+  
+  
+  all_data <- dplyr::bind_rows(data_not_2013, data_2013) %>% 
+    arrange(city_id, year)
+  
+  
+  dplyr::lag(data_2013$total)
+  
+    
+  
+  purrr::map(treatment_id_lists, map_synth, master_data = all_data)
   
 }
 
@@ -57,23 +56,26 @@ map_synth <- function(id_n, master_data){
   
   tictoc::tic()
   
-  synth_data <- synth_ready(id_n, master_data) %>% 
-    dplyr::relocate(outcome_percent, .after = year)
+  synth_data <- master_data %>% 
+    dplyr::filter(city_id == id_n | dummy == 0)
+  
+  # synth_data <- synth_ready(id_n, master_data) %>% 
+  #   dplyr::relocate(outcome_percent, .after = year)
   
   synth_data <- synth_data %>% 
-    dplyr::mutate(rep_outcome = outcome_percent) 
-    # dplyr::select(city_id, cut_off,
-    #               city_name, region_name,
-    #               year, treatment_year, total,
-    #               middle, outcome_percent,
-    #               rep_outcome,dummy,
-    #               children_household_percent, 
-    #               own_household_percent,
-    #               workforce_percent,
-    #               student_percent, 
-    #               houseyear_pop_percent,
-    #               train_pop_percent)
-    # 
+    dplyr::mutate(rep_outcome = social_rate) 
+  # dplyr::select(city_id, cut_off,
+  #               city_name, region_name,
+  #               year, treatment_year, total,
+  #               middle, outcome_percent,
+  #               rep_outcome,dummy,
+  #               children_household_percent, 
+  #               own_household_percent,
+  #               workforce_percent,
+  #               student_percent, 
+  #               houseyear_pop_percent,
+  #               train_pop_percent)
+  # 
   treatment_one <- synth_data %>% 
     dplyr::filter(dummy == 1) 
   int_year <- unique(treatment_one$treatment_year)
@@ -83,7 +85,7 @@ map_synth <- function(id_n, master_data){
   output_synth <- synth_data %>%
     
     synthetic_control(
-      outcome = outcome_percent, 
+      outcome = social_rate, 
       unit = city_id, 
       time = year, 
       i_unit = id_n, 
@@ -92,7 +94,7 @@ map_synth <- function(id_n, master_data){
     ) %>%
     
     
-
+    
     generate_predictor(time_window = 1995:int_year - 1,
                        children = mean(children_household_percent, na.rm = TRUE),
                        own = mean(own_household_percent, na.rm = TRUE),
@@ -103,9 +105,9 @@ map_synth <- function(id_n, master_data){
     
     generate_predictor(time_window = 1995,
                        outcome_start = rep_outcome) %>%
-    generate_predictor(time_window = int_year - 5,
+    generate_predictor(time_window = int_year - 6,
                        outcome_middle_year = rep_outcome) %>%
-    generate_predictor(time_window = int_year - 2,
+    generate_predictor(time_window = int_year - 1,
                        outcome_last_year = rep_outcome) %>%
     
     generate_weights(optimization_window = 1995:int_year - 1, 
@@ -136,9 +138,9 @@ map_synth <- function(id_n, master_data){
   # pdf_name <- paste0( city_name_t,'.png')
   
   # file_name_figure <- paste0(here::here('04.analyze','synthetic_control','after_2015_outcome',
-                                        # 'figure', pdf_name))
+  # 'figure', pdf_name))
   
-  file_name_table <- paste0(here::here('04.analyze','synthetic_control', 'after_2015',
+  file_name_table <- paste0(here::here('04.analyze','synthetic_control', 'social_rate',
                                        'table', table_name))
   
   # ggsave(p, filename = file_name_figure)
@@ -159,7 +161,7 @@ map_synth <- function(id_n, master_data){
   weight_file_name <- paste0(city_name_t,".png")
   
   weight_file_name <- paste0(here::here('04.analyze','synthetic_control',
-                                        'after_2015', 'weight',
+                                        'social_rate', 'weight',
                                         weight_file_name))
   
   ggsave(weight_plot, filename = weight_file_name)
@@ -170,54 +172,54 @@ map_synth <- function(id_n, master_data){
 }
 
 
-synth_ready <- function(id_n, master_data){
-  
-  treatment_ready <- master_data %>% 
-    dplyr::filter(city_id == id_n)
-  
-  int_year <- unique(treatment_ready$treatment_year)
-  
-  int_treatment_num <- treatment_ready %>% 
-    dplyr::filter(year == int_year - 1) %>% 
-    dplyr::distinct(middle) 
-  
-  base_num <- unique(int_treatment_num$middle)
-  
-  treatment_ready <- treatment_ready %>% 
-    dplyr::mutate(outcome_percent = middle/base_num)
-  
-  control_ready <- master_data %>% 
-    dplyr::filter(dummy == 0) 
-  
-  control_city_id <- unique(control_ready$city_id)
-  
-  control_ready <- purrr::map(control_city_id, calculate_control, control_ready,  int_year) %>% 
-    dplyr::bind_rows()
-  
-  synth_base_data <- dplyr::bind_rows(treatment_ready, control_ready)
-  
-  return(synth_base_data)
-  
-}
-
-calculate_control <- function(id_c, control_ready, int_year){
-  
-  control_one <- control_ready %>% 
-    dplyr::filter(city_id == id_c)
-  
-  int_control_num <- control_one %>% 
-    dplyr::filter(year == int_year - 1) %>% 
-    dplyr::distinct(middle)
-  
-  base_num <- unique(int_control_num$middle)
-  
-  control_one <- control_one %>% 
-    dplyr::group_by(city_id) %>% 
-    dplyr::mutate(outcome_percent = middle/base_num)
-  
-  return(control_one)
-  
-}
+# synth_ready <- function(id_n, master_data){
+#   
+#   treatment_ready <- master_data %>% 
+#     dplyr::filter(city_id == id_n)
+#   
+#   int_year <- unique(treatment_ready$treatment_year)
+#   
+#   int_treatment_num <- treatment_ready %>% 
+#     dplyr::filter(year == int_year - 1) %>% 
+#     dplyr::distinct(middle) 
+#   
+#   base_num <- unique(int_treatment_num$middle)
+#   
+#   treatment_ready <- treatment_ready %>% 
+#     dplyr::mutate(outcome_percent = middle/base_num)
+#   
+#   control_ready <- master_data %>% 
+#     dplyr::filter(dummy == 0) 
+#   
+#   control_city_id <- unique(control_ready$city_id)
+#   
+#   control_ready <- purrr::map(control_city_id, calculate_control, control_ready,  int_year) %>% 
+#     dplyr::bind_rows()
+#   
+#   synth_base_data <- dplyr::bind_rows(treatment_ready, control_ready)
+#   
+#   return(synth_base_data)
+#   
+# }
+# 
+# calculate_control <- function(id_c, control_ready, int_year){
+#   
+#   control_one <- control_ready %>% 
+#     dplyr::filter(city_id == id_c)
+#   
+#   int_control_num <- control_one %>% 
+#     dplyr::filter(year == int_year - 1) %>% 
+#     dplyr::distinct(middle)
+#   
+#   base_num <- unique(int_control_num$middle)
+#   
+#   control_one <- control_one %>% 
+#     dplyr::group_by(city_id) %>% 
+#     dplyr::mutate(outcome_percent = middle/base_num)
+#   
+#   return(control_one)
+#   
+# }
 
 
 # lag_covariates <- function(synth_data){

@@ -5,28 +5,23 @@ main <- function(){
   
   treatment_data <- load_csv('complete', 'treatment_data.csv') %>% 
     dplyr::filter(treatment_year <= 2015,
-                  city_name != "揖斐郡大野町",
-                  city_name != "本巣郡北方町",
-                  city_name != "珠洲市",
-                  city_name != "鳳珠郡能登町",
-                  city_name != "十和田市",
-                  city_name != "行方市"
-    )   
+                  city_id != 21403,
+                  city_id != 21421,
+                  city_id != 17205,# 珠洲市
+                  city_id != 17463,#能登町
+                  city_id != 2206 #十和田市
+                  )  
   
-  unique(treatment_data$city_name) 
-  
-  aaa <- treatment_data %>% 
-    select(city_name, region_name) %>% 
-    distinct()
-  
-  write.csv(aaa, file = here::here('02.raw','treatment_name_list.csv'),
-            fileEncoding = "CP932", row.names = FALSE)
+  test_df <- treatment_data %>% 
+    dplyr::filter(city_name == "檜山郡江差町") %>%
+    dplyr::select(city_name, city_id, year, treatment_year,
+                  total, social, social_rate, natural, natural_rate, 
+                  change, change_rate) %>% 
+    dplyr::mutate(percent = (social/total)*100) %>% 
+    dplyr::mutate(cumulative = cumsum(percent))
   
   
-  
-  remove_name_list <- c("階上町", "久慈市", "遠野市", "釜石市",
-                        "大槌町", "山田町", "岩泉町", "田野畑村",
-                        "野田村", "洋野町", "猪苗代町")
+  unique(treatment_data$city_name)
   
   control_data <- load_csv('complete', 'control_data.csv') %>% 
     dplyr::filter(passenger <= 1) %>% 
@@ -35,11 +30,7 @@ main <- function(){
                   city_id != 1644, #池田町,
                   city_id != 1649, #十勝郡浦幌町
                   city_id != 1668, #白糠郡白糠町
-                  ) %>% 
-    dplyr::filter(city_name != remove_name_list,
-                  city_name != "遠野市",
-                  city_name != "久慈市",
-                  city_name != "釜石市")
+                  ) 
   
   treatment_id_lists <- unique(treatment_data$city_id)
   
@@ -51,6 +42,9 @@ main <- function(){
   purrr::map(treatment_id_lists, map_synth, master_data)
   
 }
+
+id = 1361
+
 
 
 map_synth <- function(id_n, master_data){

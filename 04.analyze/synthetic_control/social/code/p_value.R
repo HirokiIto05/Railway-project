@@ -5,8 +5,7 @@ main <- function(){
                   city_name != "揖斐郡大野町",
                   city_name != "本巣郡北方町",
                   city_name != "珠洲市",
-                  city_name != "鳳珠郡能登町",
-                  city_name != "十和田市"
+                  city_name != "能登町"
     )   
   
   treatment_diff_data <- read.csv(here::here('04.analyze',

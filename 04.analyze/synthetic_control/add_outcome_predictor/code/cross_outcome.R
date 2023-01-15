@@ -2,11 +2,14 @@ main <- function(){
   
   treatment_data <- load_csv('complete', 'treatment_data.csv') %>% 
     dplyr::filter(treatment_year <= 2015,
-                  city_id != 21403,
-                  city_id != 21421,
-                  city_id != 17205,# 珠洲市
-                  city_id != 17463,#能登町
-    )  
+                  city_name != "揖斐郡大野町",
+                  city_name != "本巣郡北方町",
+                  city_name != "珠洲市",
+                  city_name != "能登町",
+                  city_name != "鳳珠郡能登町",
+                  city_name != "十和田市",
+                  city_name != "行方市"
+    )   
 
   treatment_name_lists <- unique(treatment_data$city_name)
   
@@ -79,6 +82,16 @@ sortunique(line_name_list$line_name)
 
 
 line_name_only <- sort(unique(line_name_list$line_name))
+
+
+
+line_name <- c("江差線", "ふるさと銀河線", "南部縦貫鉄道線", "十和田観光電鉄線", "七尾線",
+               "八百津線", "可部線", "島原鉄道線", "高千穂線")
+
+track_length <- c(42.1, 140.0, 20.9, 14.7, 20.4, 7.3, 46.2, 35.3, 29.1)
+
+length_df <- data.frame(line_name = line_name,
+                        track_length = track_length)
 
 add_length <- function(treatment_data, after_df,
                        after_df_name){

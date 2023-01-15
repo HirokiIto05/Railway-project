@@ -5,7 +5,7 @@ main <- function(){
                   city_name != "揖斐郡大野町",
                   city_name != "本巣郡北方町",
                   city_name != "珠洲市",
-                  city_name != "鳳珠郡能登町",
+                  city_name != "能登町",
                   city_name != "十和田市"
     )   
   
@@ -18,8 +18,7 @@ main <- function(){
   
   write.csv(diff_all_data, here::here('04.analyze',
                                       'synthetic_control',
-                                      'after_2015',
-                                      'diff_ten_data',
+                                      'add_outcome_predictor',
                                       'diff_ten_data.csv'),
             row.names = FALSE, fileEncoding = "CP932")
   
@@ -35,7 +34,8 @@ read_plot <- function(city_name_t, treatment_data){
   file_name <- paste0(city_name_t, ".rds")
   
   base_plot <- readRDS(here::here('04.analyze','synthetic_control',
-                                  'after_2015','table', file_name))
+                                  'add_outcome_predictor',
+                                  'table', file_name))
   
   title_id <- as.character(city_name_t)
   
@@ -55,12 +55,6 @@ read_plot <- function(city_name_t, treatment_data){
   
 }
 
-control_city_name <- control_data %>% 
-  dplyr::distinct(city_name)
-
-
-
-output_plot_five
 
 create_bar_plot <- function(year_i, diff_all_data){
   
@@ -85,9 +79,9 @@ create_bar_plot <- function(year_i, diff_all_data){
     
   output_plot_five
   
-  file_name_five <- paste0(here::here('04.analyze','synthetic_control',
-                                        'after_2015',
-                                        'bar_chart', "Five_year_later_bar.png"))
+  file_name_five <- paste0(here::here('04.analyze', 'synthetic_control',
+                                      'add_outcome_predictor', 'bar_chart',
+                                      "Five_year_later_bar.png"))
   
   ggsave(output_plot_five, filename = file_name_five, width = 4.5, height = 3.2)
   
@@ -117,10 +111,11 @@ create_bar_plot <- function(year_i, diff_all_data){
   mean(ten_year_bar_df$diff)*100
 
   file_name_ten <- paste0(here::here('04.analyze','synthetic_control',
-                                        'after_2015',
-                                        'bar_chart', "Ten_year_later_bar.png"))
+                                     'add_outcome_predictor', 'bar_chart',
+                                     "Ten_year_later_bar.png"))
   
   ggsave(output_plot_ten, filename = file_name_ten, width = 4.5, height = 3.2 *0.85)
   
   
 }
+

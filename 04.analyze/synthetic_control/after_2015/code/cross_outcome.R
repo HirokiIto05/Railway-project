@@ -2,11 +2,13 @@ main <- function(){
   
   treatment_data <- load_csv('complete', 'treatment_data.csv') %>% 
     dplyr::filter(treatment_year <= 2015,
-                  city_id != 21403,
-                  city_id != 21421,
-                  city_id != 17205,# 珠洲市
-                  city_id != 17463,#能登町
-    )  
+                  city_name != "揖斐郡大野町",
+                  city_name != "本巣郡北方町",
+                  city_name != "珠洲市",
+                  city_name != "能登町",
+                  city_name != "鳳珠郡能登町",
+                  city_name != "十和田市"
+    )   
 
   treatment_name_lists <- unique(treatment_data$city_name)
   
