@@ -5,7 +5,7 @@ main <- function(){
   
   
   plot_based_data <- read.csv(here::here('04.analyze','synthetic_control',
-                                         'add_outcome_predictor', 'cross_plot_base',
+                                         'cov_only', 'cross_plot_base',
                                          'data.csv'), fileEncoding = "CP932") %>% 
     dplyr::rename(ten_diff = diff)
     
@@ -24,7 +24,7 @@ main <- function(){
     
   
   write.csv(add_five_df,here::here('04.analyze','synthetic_control',
-                                   'add_outcome_predictor', 'cross_plot_base',
+                                   'cov_only', 'cross_plot_base',
                                    'five_ten_data.csv'), fileEncoding = "CP932",
             row.names = FALSE)
   
@@ -121,12 +121,12 @@ cor.test()
 library(rlang)
 
 ggsave(five_cross, filename = here::here('04.analyze','synthetic_control', 
-                                         'add_outcome_predictor','cross_plot',
+                                         'cov_only','cross_plot',
                                          "five_cross.png"),
        device = "png",  width = 8, height = 10)
 
 ggsave(ten_cross, filename = here::here('04.analyze','synthetic_control', 
-                                         'add_outcome_predictor','cross_plot',
+                                         'cov_only','cross_plot',
                                          "ten_cross.png"),
        device = "png",  width = 8, height = 10)
 

@@ -18,7 +18,7 @@ main <- function(){
   
   cross_plot_base <- read.csv(here::here('04.analyze',
                                          'synthetic_control',
-                                         'add_outcome_predictor',
+                                         'cov_only',
                                          'cross_plot_base',
                                          'five_ten_data.csv'),
                               fileEncoding = "CP932")
@@ -27,7 +27,7 @@ main <- function(){
   
   write.csv(diff_all_data, here::here('04.analyze',
                                       'synthetic_control',
-                                      'add_outcome_predictor',
+                                      'cov_only',
                                       'diff_ten_data.csv'),
             row.names = FALSE, fileEncoding = "CP932")
   
@@ -43,7 +43,7 @@ read_plot <- function(city_name_t, treatment_data){
   file_name <- paste0(city_name_t, ".rds")
   
   base_plot <- readRDS(here::here('04.analyze','synthetic_control',
-                                  'add_outcome_predictor',
+                                  'cov_only',
                                   'table', file_name))
   
   title_id <- as.character(city_name_t)
@@ -94,7 +94,7 @@ create_bar_plot <- function(year_i, diff_all_data){
   output_plot_five
   
   file_name_five <- paste0(here::here('04.analyze', 'synthetic_control',
-                                      'add_outcome_predictor', 'bar_chart',
+                                      'cov_only', 'bar_chart',
                                       "Five_year_later_bar.png"))
   
   ggsave(output_plot_five, filename = file_name_five, width = 4, height = 2.7)
@@ -128,7 +128,7 @@ create_bar_plot <- function(year_i, diff_all_data){
   output_plot_ten
   
   file_name_ten <- paste0(here::here('04.analyze','synthetic_control',
-                                     'add_outcome_predictor', 'bar_chart',
+                                     'cov_only', 'bar_chart',
                                      "Ten_year_later_bar.png"))
   
   ggsave(output_plot_five, filename = file_name_five, width = 4, height = 2.7 * 0.85)
@@ -146,6 +146,6 @@ five_ten_df <- five_ten_df %>%
 
 write.csv(five_ten_df, 
           file = here::here('04.analyze','synthetic_control',
-                                'add_outcome_predictor',
+                                'cov_only',
                                 'five_ten_table','five_ten_table.csv'),
           row.names = FALSE, fileEncoding = "CP932")

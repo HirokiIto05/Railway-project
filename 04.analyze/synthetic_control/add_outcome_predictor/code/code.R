@@ -5,23 +5,17 @@ main <- function(){
   
   treatment_data <- load_csv('complete', 'treatment_data.csv') %>% 
     dplyr::filter(treatment_year <= 2015,
-                  city_id != 21403,
-                  city_id != 21421,
-                  city_id != 17205,# 珠洲市
-                  city_id != 17463,#能登町
-                  city_id != 2206 #十和田市
-                  )  
+                  city_name != "揖斐郡大野町",
+                  city_name != "本巣郡北方町",
+                  city_name != "珠洲市",
+                  city_name != "鳳珠郡能登町",
+                  city_name != "十和田市",
+                  city_name != "行方市"
+    )   
   
-  test_df <- treatment_data %>% 
-    dplyr::filter(city_name == "檜山郡江差町") %>%
-    dplyr::select(city_name, city_id, year, treatment_year,
-                  total, social, social_rate, natural, natural_rate, 
-                  change, change_rate) %>% 
-    dplyr::mutate(percent = (social/total)*100) %>% 
-    dplyr::mutate(cumulative = cumsum(percent))
-  
-  
-  unique(treatment_data$city_name)
+  remove_name_list <- c("階上町", "久慈市", "遠野市", "釜石市",
+                        "大槌町", "山田町", "岩泉町", "田野畑村",
+                        "野田村", "洋野町", "猪苗代町")
   
   control_data <- load_csv('complete', 'control_data.csv') %>% 
     dplyr::filter(passenger <= 1) %>% 
@@ -30,7 +24,12 @@ main <- function(){
                   city_id != 1644, #池田町,
                   city_id != 1649, #十勝郡浦幌町
                   city_id != 1668, #白糠郡白糠町
-                  ) 
+    ) %>% 
+    dplyr::filter(city_name != remove_name_list,
+                  city_name != "遠野市",
+                  city_name != "久慈市",
+                  city_name != "釜石市")
+  
   
   treatment_id_lists <- unique(treatment_data$city_id)
   
@@ -43,9 +42,7 @@ main <- function(){
   
 }
 
-id = 1361
-
-
+id_n <- 1549
 
 map_synth <- function(id_n, master_data){
   
@@ -55,19 +52,9 @@ map_synth <- function(id_n, master_data){
     dplyr::relocate(outcome_percent, .after = year)
   
   synth_data <- synth_data %>% 
-    dplyr::mutate(rep_outcome = outcome_percent) 
-    # dplyr::select(city_id, cut_off,
-    #               city_name, region_name,
-    #               year, treatment_year, total,
-    #               middle, outcome_percent,
-    #               rep_outcome,dummy,
-    #               children_household_percent, 
-    #               own_household_percent,
-    #               workforce_percent,
-    #               student_percent, 
-    #               houseyear_pop_percent,
-    #               train_pop_percent)
-    # 
+    dplyr::mutate(rep_outcome = outcome_percent)
+  
+  
   treatment_one <- synth_data %>% 
     dplyr::filter(dummy == 1) 
   int_year <- unique(treatment_one$treatment_year)
@@ -93,14 +80,8 @@ map_synth <- function(id_n, master_data){
                        workforce = mean(workforce_percent, na.rm = TRUE),
                        student = mean(student_percent, na.rm = TRUE),
                        train = mean(train_pop_percent, na.rm = TRUE),
-                       house_20year = mean(houseyear_pop_percent, na.rm =TRUE)) %>%
-    
-    generate_predictor(time_window = 1995,
-                       outcome_start = rep_outcome) %>%
-    generate_predictor(time_window = int_year - 5,
-                       outcome_middle_year = rep_outcome) %>%
-    generate_predictor(time_window = int_year - 2,
-                       outcome_last_year = rep_outcome) %>%
+                       house_20year = mean(houseyear_pop_percent, na.rm =TRUE),
+                       population = mean(rep_outcome, na.rm = TRUE)) %>%
     
     generate_weights(optimization_window = 1995:int_year - 1, 
                      margin_ipop = .02,sigf_ipop = 7,bound_ipop = 6
@@ -132,7 +113,8 @@ map_synth <- function(id_n, master_data){
   # file_name_figure <- paste0(here::here('04.analyze','synthetic_control','after_2015_outcome',
                                         # 'figure', pdf_name))
   
-  file_name_table <- paste0(here::here('04.analyze','synthetic_control', 'after_2015',
+  file_name_table <- paste0(here::here('04.analyze','synthetic_control',
+                                       'add_outcome_predictor',
                                        'table', table_name))
   
   # ggsave(p, filename = file_name_figure)
@@ -153,7 +135,7 @@ map_synth <- function(id_n, master_data){
   weight_file_name <- paste0(city_name_t,".png")
   
   weight_file_name <- paste0(here::here('04.analyze','synthetic_control',
-                                        'after_2015', 'weight',
+                                        'add_outcome_predictor', 'weight',
                                         weight_file_name))
   
   ggsave(weight_plot, filename = weight_file_name)
@@ -241,4 +223,4 @@ calculate_control <- function(id_c, control_ready, int_year){
 library(tidysynth)
 library(ggplot2)
 library(grDevices)
-
+library(patchwork)

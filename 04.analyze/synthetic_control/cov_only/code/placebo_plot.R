@@ -2,7 +2,7 @@ main <- function() {
   
    placebo_df <- read.csv(file = here::here('04.analyze',
                                                  'synthetic_control',
-                                                 'add_outcome_predictor',
+                                                 'cov_only',
                                                  'placebo_table', 'placebo_data.csv'),
                                fileEncoding = "CP932")
    
@@ -12,41 +12,42 @@ main <- function() {
    placebo_df_after <- placebo_df %>% 
      dplyr::mutate(after = time_unit - treatment_year + 1)
    
-   purrr::map(treatment_name_lists, create_placebo_plot ,  placebo_df_after)
+   purrr::map(treatment_name_lists, create_each_pvalue_plot,  placebo_df_after)
    
 }
 
-city_name_t
+ten_after_df <- placebo_df_after %>% 
+  dplyr::filter(after == 10)
+
+
   
-create_placebo_plot <- function(city_name_t, placebo_df_after){
+create_each_pvalue_plot <- function(city_name_t, placebo_df_after){
   
   based_data <- placebo_df_after %>% 
-    dplyr::filter(city_name == city_name_t) %>% 
-    dplyr::mutate(city_id = as.character(city_id),
-                  .placebo = as.character(.placebo),)
+    dplyr::filter(city_name == city_name_t)
   
-  
-  output_plot <- ggplot(based_data, aes(x = time_unit,
-                                        y = diff, 
-                                        group = city_id,
-                                        colour = .placebo)) +
-    geom_line() +
-    theme_bw(base_family = "HiraKakuPro-W3") +
-    theme(legend.position = "none") +
-    scale_color_manual(values = c("black", "gray")) +
-    labs(title = title_id,
-         y = "population",
-         x = "year") 
-    
-  
+  output_plot <- ggplot(based_data, aes(x = after, y = p_value)) +
+    geom_point() +
+    labs(title = paste0("p-value ", "'",city_name_t,"'"),
+         y = "p-value",
+         x = "after year") +
+    theme_gray(base_family = "HiraKakuPro-W3") +
+    ylim(c(0,1))
+  # theme(axis.title.y = element_blank(),
+  #       plot.title = element_text(size = 13),
+  #       axis.text.x = element_text(size = 10),
+  #       axis.text.y = element_text(size = 10)) +
+  # ylim(c(-0.1, 0.1))
   output_plot
+  
+  
   
   file_name <- paste0(city_name_t, ".png")
   
   ggsave(output_plot, file = here::here('04.analyze',
                                         'synthetic_control',
-                                        'add_outcome_predictor',
-                                        'placebo_figure', file_name))
+                                        'after_2015',
+                                        'after_placebo_plot', file_name))
   # write.csv(ten_year_placebo_df,
             # file = here::here('04.analyze',
             #                   'synthetic_control',
@@ -83,7 +84,7 @@ ten_table_mod <- ten_table %>%
 write.csv(ten_table_mod, 
           file = here::here('04.analyze', 
                             'synthetic_control',
-                            'add_',
+                            'after_2015',
                             'after_placebo_table', 
                             'p_value_diff_ten.csv'),
           fileEncoding = "CP932",

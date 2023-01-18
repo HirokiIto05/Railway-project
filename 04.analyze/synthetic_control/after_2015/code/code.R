@@ -19,8 +19,8 @@ main <- function(){
     select(city_name, region_name) %>% 
     distinct()
   
-  write.csv(aaa, file = here::here('02.raw','treatment_name_list.csv'),
-            fileEncoding = "CP932", row.names = FALSE)
+  # write.csv(aaa, file = here::here('02.raw','treatment_name_list.csv'),
+            # fileEncoding = "CP932", row.names = FALSE)
   
   
   
@@ -52,6 +52,8 @@ main <- function(){
   
 }
 
+
+id_n = 34368
 
 map_synth <- function(id_n, master_data){
   
