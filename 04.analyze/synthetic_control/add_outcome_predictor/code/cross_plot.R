@@ -4,29 +4,15 @@ main <- function(){
   
   
   
-  plot_based_data <- read.csv(here::here('04.analyze','synthetic_control',
-                                         'add_outcome_predictor', 'cross_plot_base',
-                                         'data.csv'), fileEncoding = "CP932") %>% 
-    dplyr::rename(ten_diff = diff)
-    
+  # plot_based_data <- read.csv(here::here('04.analyze','synthetic_control',
+  #                                        'add_outcome_predictor', 'cross_plot_base',
+  #                                        'five_ten_data.csv'), fileEncoding = "CP932") 
   
-  
-  add_five_df <- five_year_bar_df %>% 
-    dplyr::select(city_name, diff) %>% 
-    dplyr::rename(five_diff = diff) %>% 
-    dplyr::right_join(plot_based_data)  
-    
-  
-  plot_based_data <- add_five_df 
-  
-  plot_based_data <- plot_based_data %>% 
-    drop_na()  
-    
-  
-  write.csv(add_five_df,here::here('04.analyze','synthetic_control',
-                                   'add_outcome_predictor', 'cross_plot_base',
-                                   'five_ten_data.csv'), fileEncoding = "CP932",
-            row.names = FALSE)
+  plot_based_data <- read.csv(here::here('04.analyze',
+                                         'synthetic_control',
+                                         'add_outcome_predictor',
+                                         'cross_plot_base',
+                                         'Jan_24_data.csv'), fileEncoding = "CP932")
   
   
   str(plot_based_data)
@@ -36,15 +22,15 @@ main <- function(){
                                  five_diff)
   
   total_diff <- create_cross_plot(plot_based_data, total_mean,
-                                  "Total population",
+                                  "Total Population",
                                   five_diff)
   
   length_diff <- create_cross_plot(plot_based_data, track_length,
-                                   "Track length",
+                                   "Track Length",
                                    five_diff)
   
   children_diff <- create_cross_plot(plot_based_data, children_mean,
-                                     "Household with children percent",
+                                     "Household with Children",
                                      five_diff)
   
   intyear_diff <- create_cross_plot(plot_based_data, treatment_year,
@@ -52,8 +38,12 @@ main <- function(){
                                     five_diff)
   
   own_diff <- create_cross_plot(plot_based_data, own_percent_mean,
-                                "Own household percent",
+                                "Owned House",
                                 five_diff)
+  
+  aging_diff <- create_cross_plot(plot_based_data, aging_mean,
+                                  "Aging Rate",
+                                  five_diff)
   
   
   main_diff_ten <- create_cross_plot(plot_based_data, distance,
@@ -61,7 +51,7 @@ main <- function(){
                                  ten_diff)
   
   total_diff_ten <- create_cross_plot(plot_based_data, total_mean,
-                                  "Total population",
+                                  "Total Population",
                                   ten_diff)
   
   length_diff_ten <- create_cross_plot(plot_based_data, track_length,
@@ -69,7 +59,7 @@ main <- function(){
                                    ten_diff)
   
   children_diff_ten <- create_cross_plot(plot_based_data, children_mean,
-                                     "Household with children percent",
+                                     "Household with children",
                                      ten_diff)
   
   intyear_diff_ten <- create_cross_plot(plot_based_data, treatment_year,
@@ -77,10 +67,75 @@ main <- function(){
                                     ten_diff)
   
   own_diff_ten <- create_cross_plot(plot_based_data, own_percent_mean,
-                                "Own household percent",
+                                "Owned House",
                                 ten_diff)
   
+  aging_diff_ten <- create_cross_plot(plot_based_data, aging_mean,
+                                  "Aging Rate",
+                                  ten_diff)
+  
 }
+
+create_children_cross <- function(plot_based_data, y_var){
+  
+  y_var <- rlang::enquo(y_var)
+  
+  cross_var_children <- ggplot(plot_based_data, aes(x = children_mean, y = ten_diff)) +
+    geom_point(size = 3) +
+    # geom_text(aes(x = !!cross_var, y = diff)) +
+    stat_smooth(method = "lm", se = FALSE, colour = "black",linetype = "longdash") +
+    labs(title = "廃線10年後",
+         x = "Percent", y = "Difference") +
+    ylim(c(-0.05, 0.05)) +
+    theme_bw(base_family = "HiraKakuProN-W3") 
+  
+  return(cross_var_children)
+
+}
+
+create_children_cross_five <- function(plot_based_data, y_var){
+  
+  y_var <- rlang::enquo(y_var)
+  
+  cross_var_children <- ggplot(plot_based_data, aes(x = children_mean, y = five_diff)) +
+    geom_point(size = 3) +
+    # geom_text(aes(x = !!cross_var, y = diff)) +
+    stat_smooth(method = "lm", se = FALSE, colour = "black",linetype = "longdash") +
+    labs(title = "廃線5年後",
+         x = "Percent", y = "Difference") +
+    ylim(c(-0.05, 0.05)) +
+    theme_bw(base_family = "HiraKakuProN-W3") 
+  
+  return(cross_var_children)
+  
+}
+
+
+cross_var_ten <- create_children_cross(plot_based_data, ten_diff)
+cross_var_five <- create_children_cross_five(plot_based_data, five_diff)
+cross_var_ten
+cross_var_five
+
+children_two_plot <- cross_var_five + cross_var_ten 
+
+children_two_plot
+
+# blanklabelplot<-ggplot()+labs(y="Difference")+theme_classic()+ 
+  # guides(x = "none", y = "none")
+
+blanklabelplot + children_two_plot + plot_layout(widths=c(1,1000))
+
+
+children_two_plot
+
+library(patchwork)
+
+ggsave(children_two_plot, 
+       filename = here::here('04.analyze',
+                             'synthetic_control',
+                             'add_outcome_predictor',
+                             'cross_plot',
+                             'children.png'))
 
 
 
@@ -97,24 +152,24 @@ main <- function(){
 library(patchwork)
 
 five_cross <-  (own_diff | total_diff)/
-  (length_diff | children_diff)/ 
-  (intyear_diff + main_diff)
+  (intyear_diff | main_diff)/
+  (length_diff + aging_diff)
   # (length_diff + children_diff)
 
 five_cross
 
-
-
-
 ten_cross <-  (own_diff_ten | total_diff_ten)/
-  (length_diff_ten | children_diff_ten)/ 
-  (intyear_diff_ten + main_diff_ten)
+  (intyear_diff_ten + main_diff_ten)/
+  (length_diff_ten | aging_diff_ten) 
 # (length_diff + children_diff)
 
 ten_cross
 
 
+
 save_cross_plot(five_cross, "five_cross")
+
+save_cross_plot(ten_cross, "ten_cross")
 
 cor.test()
 
@@ -161,9 +216,9 @@ create_cross_plot <- function(plot_based_data, cross_var, var_cha, y_var){
   cross_var_plot<- ggplot(plot_based_data, aes(x = !!cross_var, y = !!y_var)) +
     geom_point(size = 3) +
     # geom_text(aes(x = !!cross_var, y = diff)) +
-    stat_smooth(method = "lm", se = FALSE, colour = "black",linetype = "dashed") +
+    stat_smooth(method = "lm", se = FALSE, colour = "black",linetype = "longdash") +
     labs(title = var_cha,
-         x = var_cha, y = "difference") +
+         x = var_cha, y = "Difference") +
     theme_bw(base_family = "HiraKakuProN-W3")
   
   cross_var_plot
@@ -178,7 +233,7 @@ save_cross_plot <- function(plot_cross, var_name){
   file_name <- paste0(var_name, ".png")
   
   ggsave(plot = plot_cross, filename = here::here('04.analyze','synthetic_control', 
-                                                  'after_2015','cross_plot',
+                                                  'add_outcome_predictor','cross_plot',
                                                   file_name),
          device = "png",  width = 8, height = 10)
   

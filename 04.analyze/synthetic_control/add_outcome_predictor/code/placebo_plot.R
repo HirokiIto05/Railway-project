@@ -16,47 +16,76 @@ main <- function() {
    
 }
 
-city_name_t
+treatment_name_lists <- unique(treatment_data$city_name)
+
+treatment_name_lists
+
+city_name_t <- "檜山郡江差町"
+  
   
 create_placebo_plot <- function(city_name_t, placebo_df_after){
   
   based_data <- placebo_df_after %>% 
     dplyr::filter(city_name == city_name_t) %>% 
+    dplyr::arrange(-city_id) %>% 
     dplyr::mutate(city_id = as.character(city_id),
-                  .placebo = as.character(.placebo),)
+                  .placebo = as.character(.placebo)) 
+  
+  title_name <- unique(based_data$city_name)
+  
+  treatment_unit <- based_data %>% 
+    dplyr::filter(.placebo == 0)
+  
+  control_unit <- based_data %>% 
+    dplyr::filter(.placebo == 1)
   
   
   output_plot <- ggplot(based_data, aes(x = time_unit,
                                         y = diff, 
                                         group = city_id,
-                                        colour = .placebo)) +
+                                        colour = .placebo,
+                                        size = .placebo)) +
     geom_line() +
     theme_bw(base_family = "HiraKakuPro-W3") +
     theme(legend.position = "none") +
     scale_color_manual(values = c("black", "gray")) +
-    labs(title = title_id,
+    labs(title = title_name,
          y = "population",
-         x = "year") 
-    
+         x = "year") +
+    scale_size_manual(values = c(1, 0.5))
   
+  
+  output_plot <- ggplot() +
+    geom_line(control_unit, mapping = aes(x = time_unit, 
+                                y = diff,
+                                group = city_id,
+                                colour = .placebo)) +
+    theme_bw(base_family = "HiraKakuPro-W3") +
+    theme(legend.position = "none") +
+    scale_color_manual(values = c("gray","black")) +
+    geom_line(treatment_unit,mapping = aes(x = time_unit, 
+                                  y = diff,
+                                  group = city_id,
+                                  colour = "black")) +
+    theme_bw(base_family = "HiraKakuPro-W3") +
+    theme(legend.position = "none") +
+    labs(title = title_name,
+         y = "population",
+         x = "year") +
+    scale_size_manual(values = c(1, 0.5))
+    
   output_plot
   
   file_name <- paste0(city_name_t, ".png")
-  
+
   ggsave(output_plot, file = here::here('04.analyze',
                                         'synthetic_control',
                                         'add_outcome_predictor',
                                         'placebo_figure', file_name))
-  # write.csv(ten_year_placebo_df,
-            # file = here::here('04.analyze',
-            #                   'synthetic_control',
-            #                   'after_2015',
-            #                   'p_value', 'placebo_after.csv'),
-            # fileEncoding = "CP932",
-  #           row.names = FALSE)
   
-  
+  return(output_plot)
 }
+
 
 create_placebo_table <- function(placebo_df_after){
   
@@ -96,4 +125,41 @@ sign_df <- table_based_df %>%
 mean(sign_df$diff)
   
   
-  
+
+
+plot_1 <- create_placebo_plot("檜山郡江差町", placebo_df_after)
+plot_2 <- create_placebo_plot("檜山郡上ノ国町", placebo_df_after)
+plot_3 <- create_placebo_plot("常呂郡訓子府町", placebo_df_after)
+plot_4 <- create_placebo_plot("常呂郡置戸町", placebo_df_after)
+plot_5 <- create_placebo_plot("中川郡本別町", placebo_df_after)
+plot_6 <- create_placebo_plot("足寄郡足寄町", placebo_df_after)   
+plot_7 <- create_placebo_plot("足寄郡陸別町", placebo_df_after)
+plot_8 <- create_placebo_plot("上北郡七戸町", placebo_df_after)
+plot_9 <- create_placebo_plot("上北郡六戸町", placebo_df_after)
+plot_10 <- create_placebo_plot("輪島市", placebo_df_after)
+plot_11 <- create_placebo_plot("加茂郡八百津町", placebo_df_after)
+plot_12 <- create_placebo_plot("山県郡安芸太田町", placebo_df_after)
+plot_13 <- create_placebo_plot("南島原市", placebo_df_after)
+plot_14 <- create_placebo_plot("西臼杵郡高千穂町", placebo_df_after)
+plot_15 <- create_placebo_plot("西臼杵郡日之影町", placebo_df_after)
+
+p_sum <- (plot_1 + plot_2 +plot_3+
+            plot_4 + plot_5 +plot_6+
+            plot_7 + plot_8 +plot_9+
+            plot_10 + plot_11 +plot_12+
+            plot_13 + plot_14 +plot_15)+
+  plot_layout(nrow = 5,
+              ncol = 3,
+              widths = c(1,1,1),
+              heights = c(1,1,1,1,1))  
+
+
+
+ggsave(p_sum, filename = here::here('04.analyze','synthetic_control', 
+                                    'add_outcome_predictor', 'appendix','placebo_plot.png'),
+       device = "png",  width = 7, height = 7*1.41421356)
+
+
+
+library(patchwork)
+

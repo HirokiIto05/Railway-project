@@ -58,9 +58,10 @@ read_plot <- function(city_name_t, treatment_data){
           axis.text.y = element_text(size = 10),
           axis.title.x = element_blank(),
           axis.title.y = element_blank(),
-          legend.position = "none") +
+          legend.position = "bottom",
+          legend.text = element_text(size=13)) +
     scale_y_continuous(breaks = seq(0.6,1.4, 0.2)) +
-    scale_x_continuous(breaks = seq(1995,2015,5)) 
+    scale_x_continuous(breaks = c(1995,int_year, 2015)) 
   
   
   output_plot
@@ -117,7 +118,8 @@ simple_plot <- ggplot(plot_df) +
         axis.text.y = element_text(size = 10),
         axis.title.x = element_blank(),
         axis.title.y = element_blank(),
-        legend.position = "bottom") +
+        legend.position = "none",
+        legend.text = element_text(size=13)) +
   scale_y_continuous(breaks = seq(0.6,1.4, 0.2)) +
   scale_x_continuous(breaks = seq(1995,2015,5)) 
 
@@ -209,12 +211,21 @@ p_sum <- (plot_1 + plot_2 +plot_3+
   plot_layout(nrow = 5,
               ncol = 3,
               widths = c(1,1,1),
-              heights = c(1,1,1,1,1))
+              heights = c(1,1,1,1,1),
+              guides = "auto")
     # design = s,
               # guides = "collect")
 
+
+p_sum
+
 ggsave(p_sum, filename = here::here('04.analyze','synthetic_control', 
                                         'add_outcome_predictor', 'appendix','treand_plot.png'),
+       device = "png",  width = 7, height = 7*1.41421356)
+
+
+ggsave(output_plot, filename = here::here('04.analyze','synthetic_control', 
+                                    'add_outcome_predictor', 'appendix','treand_plot_legend.png'),
        device = "png",  width = 7, height = 7*1.41421356)
 
 
