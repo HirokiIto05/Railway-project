@@ -15,6 +15,8 @@ main <- function(){
   
   treatment_name_lists
 
+  
+  
     
 }
 
@@ -32,36 +34,41 @@ read_plot <- function(city_name_t, treatment_data){
   base_plot <- readRDS(here::here('04.analyze','synthetic_control',
                                   'add_outcome_predictor','table', file_name))
   
-  title_id <- as.character(city_name_t)
   
   tt <- base_plot %>% grab_synthetic_control() 
   
   int_year <- treatment_data %>% 
     dplyr::filter(city_name == city_name_t)
   
+  region_name_t <- unique(int_year$region_name)
+  
+  title_name <- paste0(city_name_t,':', region_name_t)
+  
   int_year <- unique(int_year$treatment_year)
   
   output_plot <- ggplot(tt) +
-    geom_line(aes(x = time_unit ,y = real_y,  linetype = "real_y")) +
-    geom_line(aes(x = time_unit,y = synth_y, linetype = "synth_y"), size = 0.5) +
-    scale_linetype_manual(name = "" ,values = c("real_y" = "solid",
-                                                     "synth_y" = "dashed")) +
-    scale_color_manual(values = c("real_y" = "black",
-                                  "synth_y" = "black")) +
+    geom_line(aes(x = time_unit ,y = real_y,  linetype = "Treatment")) +
+    geom_line(aes(x = time_unit, y = synth_y, linetype = "Synthetic"), size = 0.5) +
+    scale_linetype_manual(name = "" ,values = c("Treatment" = "solid",
+                                                "Synthetic" = "dashed")) +
+    scale_color_manual(values = c("Treatment" = "black",
+                                  "Synthetic" = "black")) +
     geom_point(aes(x = time_unit, y = real_y), size = 1.1)+
-    geom_vline(xintercept = int_year - 0.5, linetype = "dotted", size = 0.8) +
-    labs(title = title_id,
+    geom_vline(xintercept = int_year - 1, linetype = "solid",
+               size = 0.8, colour = "gray") +
+    labs(title = title_name,
          y = "population") +
     theme_bw(base_family = "HiraKakuPro-W3") +
-    theme(plot.title = element_text(size = 13),
-          axis.text.x = element_text(size = 10),
-          axis.text.y = element_text(size = 10),
+    theme(plot.title = element_text(size = 12),
+          axis.text.x = element_text(size = 13),
+          axis.text.y = element_text(size = 13),
           axis.title.x = element_blank(),
           axis.title.y = element_blank(),
           legend.position = "bottom",
-          legend.text = element_text(size=13)) +
-    scale_y_continuous(breaks = seq(0.6,1.4, 0.2)) +
-    scale_x_continuous(breaks = c(1995,int_year, 2015)) 
+          legend.text = element_text(size=15)) +
+    # ylim(0.6, 1.2) +
+    # scale_y_continuous(breaks = seq(0.6,1.4, 0.2)) +
+    scale_x_continuous(breaks = c(1995,int_year -1)) 
   
   
   output_plot
@@ -79,96 +86,88 @@ read_plot <- function(city_name_t, treatment_data){
   
 }
 
-two_df <- synth_data %>% 
-  dplyr::filter(city_name == city_name_t|dummy == 0)
 
-two_smry <- two_df %>% 
-  dplyr::ungroup() %>% 
-  dplyr::group_by(dummy, year) %>% 
-  dplyr::summarise(simple_mean = mean(outcome_percent))
-
-t_df <- two_smry %>% 
-  dplyr::ungroup() %>% 
-  dplyr::filter(dummy == 1) %>% 
-  dplyr::rename(treated_mean = simple_mean) %>% 
-  dplyr::select(year, treated_mean)
-
-c_df <- two_smry %>% 
-  dplyr::ungroup() %>% 
-  dplyr::filter(dummy == 0) %>% 
-  dplyr::rename(control_mean = simple_mean)
-
-plot_df <- dplyr::left_join(c_df, t_df)
-
-
-simple_plot <- ggplot(plot_df) +
-  geom_line(aes(x = year, y = treated_mean,  linetype = "real_y")) +
-  geom_line(aes(x = year, y = control_mean, linetype = "simple mean"), size = 0.5) +
-  scale_linetype_manual(name = "" ,values = c("real_y" = "solid",
-                                              "simple mean" = "dashed")) +
-  scale_color_manual(values = c("real_y" = "black",
-                                "synth_y" = "black")) +
-  geom_point(aes(x = year, y = treated_mean), size = 1.1)+
-  geom_vline(xintercept = int_year - 0.5, linetype = "dotted", size = 0.8) +
-  labs(title = city_name_t,
-       y = "population") +
-  theme_bw(base_family = "HiraKakuPro-W3") +
-  theme(plot.title = element_text(size = 13),
-        axis.text.x = element_text(size = 10),
-        axis.text.y = element_text(size = 10),
-        axis.title.x = element_blank(),
-        axis.title.y = element_blank(),
-        legend.position = "none",
-        legend.text = element_text(size=13)) +
-  scale_y_continuous(breaks = seq(0.6,1.4, 0.2)) +
-  scale_x_continuous(breaks = seq(1995,2015,5)) 
-
-simple_plot
+create_simple <- function(){
+  
+  two_df <- synth_data %>% 
+    dplyr::filter(city_name == city_name_t|dummy == 0)
+  
+  two_smry <- two_df %>% 
+    dplyr::ungroup() %>% 
+    dplyr::group_by(dummy, year) %>% 
+    dplyr::summarise(simple_mean = mean(outcome_percent)) %>% 
+    dplyr::ungroup()
+  
+  t_df <- synth_data %>% 
+    dplyr::ungroup() %>% 
+    dplyr::filter(dummy == 1) %>% 
+    dplyr::group_by(dummy, year) %>% 
+    dplyr::summarise(simple_mean = mean(outcome_percent)) %>% 
+    dplyr::rename(real_y = simple_mean) %>% 
+    dplyr::ungroup() %>% 
+    dplyr::select(year, real_y)
+  
+  title_name <- paste0(city_name_t, ':', "北海道")
+  
+  plot_df <- dplyr::left_join(two_smry, t_df) %>% 
+    dplyr::filter(dummy == 0)
+  
+  plot_df <- plot_df %>% 
+    dplyr::select(-dummy) %>% 
+    dplyr::ungroup()
+  str(plot_df)
+  
+  str(tt)
+  
+  simple_plot <- ggplot(plot_df) +
+    geom_line(aes(x = year, y = real_y, linetype = "Treatment")) +
+    geom_line(aes(x = year, y = simple_mean, linetype = "Control Average"), 
+              size = 0.5) +
+    scale_linetype_manual(name = "" ,values = c("Treatment" = "solid",
+                                                "Control Average" = "dashed")) +
+    scale_color_manual(values = c("Treatment" = "black",
+                                  "Control Average" = "black")) +
+    geom_point(aes(x = year, y = real_y), size = 1.1)+
+    geom_vline(xintercept = int_year - 1, linetype = "solid",
+               size = 0.8, colour = "gray") +
+    labs(title = title_name) +
+    theme_bw(base_family = "HiraKakuPro-W3") +
+    theme(plot.title = element_text(size = 15),
+          axis.text.x = element_text(size = 13),
+          axis.text.y = element_text(size = 13),
+          axis.title.x = element_blank(),
+          axis.title.y = element_blank(),
+          legend.position = "bottom",
+          legend.text = element_text(size=15),
+          plot.tag = element_text(size = 11),
+          plot.tag.position = c(0.51, 0.98)) +
+    ylim(0.6, 1.2) +
+    # scale_y_continuous(breaks = seq(0.6,1.4, 0.2)) +
+    scale_x_continuous(breaks = c(1995,int_year - 1)) 
+    # coord_cartesian(clip = "off") +
+    # annotate("text", x = 12.5, y = 3.5, label = "Arbitrary text") +
+    
+  
+  simple_plot
+  
+}
 
 
 # library(patchwork)
 
-diff_plot <- simple_plot + output_plot 
+compare_plot <- simple_plot + output_plot 
 
-diff_plot
+compare_plot
 
-ggsave(diff_plot, filename = here::here('04.analyze','synthetic_control', 
-                                          'add_outcome_predictor', 'two_compare','two_graph.png'),
+
+ggsave(compare_plot, filename = here::here('04.analyze',
+                                        'synthetic_control', 
+                                        'add_outcome_predictor',
+                                        'two_compare',
+                                        'two_graph.png'),
        device = "png",  width = 12, height = 6)
 
 
-
-plot_5 <- read_plot("足寄郡陸別町", treatment_data)
-plot_6 <- read_plot("上北郡七戸町", treatment_data)
-
-plot_5
-
-first_group <-  (plot_6 | plot_5) +
-  plot_layout(guides = 'collect')
-
-first_group
-
-# ggsave(first_group, filename = here::here('04.analyze','synthetic_control', 
-#                                           'after_2015', 'two_plot','two_graph.png'),
-#        device = "png",  width = 12, height = 6)
-# 
-# 
-# 
-# ggsave(second_group, filename = here::here('04.analyze','synthetic_control', 'figure',
-#                                            'synth_cov', 'density_1000', 'second.png'),
-#        device = cairo_pdf,   width = 12, height = 4)
-# 
-# ggsave(third_group, filename = here::here('04.analyze','synthetic_control', 'figure',
-#                                           'synth_cov', 'density_1000', 'third.png'),
-#        device = "png",   width = 12, height = 4)
-# 
-# ggsave(four_group, filename = here::here('04.analyze','synthetic_control', 'figure',
-#                                          'synth_cov', 'density_1000','four.png'),
-#        device = "png",   width = 12, height = 4)
-# 
-# ggsave(five_group, filename = here::here('04.analyze','synthetic_control', 'figure',
-#                                          'synth_cov', 'density_1000','five.png'),
-#        device = "png",   width = 12, height = 4)
 
 
 install.packages("patchwork")
@@ -192,17 +191,6 @@ plot_13 <- read_plot("南島原市", treatment_data)
 plot_14 <- read_plot("西臼杵郡高千穂町", treatment_data)
 plot_15 <- read_plot("西臼杵郡日之影町", treatment_data)
 
-
-plot_1
-
-s <- "
-123
-456
-789
-101112
-131415
-"
-
 p_sum <- (plot_1 + plot_2 +plot_3+
   plot_4 + plot_5 +plot_6+
   plot_7 + plot_8 +plot_9+
@@ -212,19 +200,20 @@ p_sum <- (plot_1 + plot_2 +plot_3+
               ncol = 3,
               widths = c(1,1,1),
               heights = c(1,1,1,1,1),
-              guides = "auto")
+              guides = "collect")
     # design = s,
               # guides = "collect")
+
 
 
 p_sum
 
 ggsave(p_sum, filename = here::here('04.analyze','synthetic_control', 
                                         'add_outcome_predictor', 'appendix','treand_plot.png'),
-       device = "png",  width = 7, height = 7*1.41421356)
+       device = "png",  width = 7.5, height = 7.5*1.41421356)
 
 
-ggsave(output_plot, filename = here::here('04.analyze','synthetic_control', 
+ggsave(p_sum, filename = here::here('04.analyze','synthetic_control', 
                                     'add_outcome_predictor', 'appendix','treand_plot_legend.png'),
        device = "png",  width = 7, height = 7*1.41421356)
 

@@ -42,7 +42,7 @@ main <- function(){
   
 }
 
-id_n <- 1549
+id_n = 1549
 
 map_synth <- function(id_n, master_data){
   

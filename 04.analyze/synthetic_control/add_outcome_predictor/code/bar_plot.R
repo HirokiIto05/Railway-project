@@ -16,20 +16,20 @@ main <- function(){
                               treatment_data) %>% 
     dplyr::bind_rows()
   
-  cross_plot_base <- read.csv(here::here('04.analyze',
-                                         'synthetic_control',
-                                         'add_outcome_predictor',
-                                         'cross_plot_base',
-                                         'five_ten_data.csv'),
-                              fileEncoding = "CP932")
+  # cross_plot_base <- read.csv(here::here('04.analyze',
+  #                                        'synthetic_control',
+  #                                        'add_outcome_predictor',
+  #                                        'cross_plot_base',
+  #                                        'five_ten_data.csv'),
+  #                             fileEncoding = "CP932")
   
   
   
-  write.csv(diff_all_data, here::here('04.analyze',
-                                      'synthetic_control',
-                                      'add_outcome_predictor',
-                                      'diff_ten_data.csv'),
-            row.names = FALSE, fileEncoding = "CP932")
+  # write.csv(diff_all_data, here::here('04.analyze',
+  #                                     'synthetic_control',
+  #                                     'add_outcome_predictor',
+  #                                     'diff_ten_data.csv'),
+  #           row.names = FALSE, fileEncoding = "CP932")
   
   
 }
@@ -64,24 +64,25 @@ read_plot <- function(city_name_t, treatment_data){
   
 }
 
-diff_all_data <-　plot_based_data
-
 create_bar_plot <- function(year_i, diff_all_data){
   
-  # five_year_bar_df <- diff_all_data %>% 
-  #   mutate(after = time_unit - treatment_year + 1) %>% 
-  #   dplyr::filter(after == 5)
+  five_year_bar_df <- diff_all_data %>%
+    mutate(after = time_unit - treatment_year + 1) %>%
+    dplyr::filter(after == 5) %>% 
+    dplyr::rename(five_diff = diff)
+
+  # colnames(cross_plot_base)
   
-  colnames(cross_plot_base)
+  # diff_all_data <- five_year_bar_df
   
-  mean_five <- round(mean(diff_all_data$five_diff, na.rm = TRUE), 4)
+  mean_five <- round(mean(five_year_bar_df$five_diff, na.rm = TRUE), 4)
   
-  output_plot_five <- ggplot(diff_all_data, aes(x = reorder(city_name, five_diff), 
+  output_plot_five <- ggplot(five_year_bar_df, aes(x = reorder(city_name, five_diff), 
                                                 y = five_diff)) +
     geom_bar(stat = "identity", width = 0.8) +
     geom_hline(yintercept = mean_five, linetype = "longdash") +
     coord_flip(clip = "off") +
-    labs(title = "5年後の効果",
+    labs(title = "5年後の差分",
          y = "") +
     theme_bw(base_family = "HiraKakuPro-W3") +
     theme(axis.title.y=element_blank(),
@@ -91,7 +92,8 @@ create_bar_plot <- function(year_i, diff_all_data){
           axis.text.x = element_text(size = 10),
           axis.text.y = element_text(size = 9)) +
     ylim(c(-0.1, 0.1)) +
-    annotate("text", x = 16, y = 0, label = "mean", vjust = -0.5) 
+    annotate("text", x = 16, y = 0, label = "平均", vjust = -0.5,
+             family="HiraKakuPro-W3") 
     
   output_plot_five
   
@@ -101,23 +103,24 @@ create_bar_plot <- function(year_i, diff_all_data){
   
   ggsave(output_plot_five, filename = file_name_five, width = 4, height = 2.7)
   
-  #   
-  # ten_year_bar_df <- diff_all_data %>% 
-  #   mutate(after = time_unit - treatment_year + 1) %>% 
-  #   dplyr::filter(after == 10)
+  
+  ten_year_bar_df <- diff_all_data %>%
+    mutate(after = time_unit - treatment_year + 1) %>%
+    dplyr::filter(after == 10) %>% 
+    dplyr::rename(ten_diff = diff)
   
   diff_all_data_ten <- diff_all_data %>% 
     drop_na()
   
-  mean_ten <- round(mean(diff_all_data_ten$ten_diff), 4)
+  mean_ten <- round(mean(ten_year_bar_df$ten_diff), 4)
   
   # mean_five
   
-  output_plot_ten <- ggplot(diff_all_data_ten, aes(x = reorder(city_name, ten_diff), y = ten_diff)) +
+  output_plot_ten <- ggplot(ten_year_bar_df, aes(x = reorder(city_name, ten_diff), y = ten_diff)) +
     geom_bar(stat = "identity", width = 0.8) +
     geom_hline(yintercept = mean_ten, linetype = "longdash") +
     coord_flip(clip = "off") +
-    labs(title = "10年後の効果",
+    labs(title = "10年後の差分",
          y = "") +
     theme_bw(base_family = "HiraKakuPro-W3") +
     theme(axis.title.y=element_blank(),
@@ -127,7 +130,8 @@ create_bar_plot <- function(year_i, diff_all_data){
           axis.text.x = element_text(size = 10),
           axis.text.y = element_text(size = 9)) +
     ylim(c(-0.1, 0.1)) +
-    annotate("text", x = 13, y = mean_ten, label = "mean", vjust = -0.5) 
+    annotate("text", x = 13, y = mean_ten, label = "平均", vjust = -0.5,
+             family="HiraKakuPro-W3") 
   
   output_plot_ten
   
@@ -149,7 +153,7 @@ ggsave(output_plot_15,
        filename = here::here('04.analyze','synthetic_control',
                              'add_outcome_predictor', 'bar_chart',
                              "five_ten_bar.png"),
-       width = 4.7, height = 5)
+       width = 4.7, height = 5.5)
 
 theme_gray(base_family = "HiraKakuPro-W3")
 

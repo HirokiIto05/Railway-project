@@ -20,7 +20,21 @@ treatment_name_lists <- unique(treatment_data$city_name)
 
 treatment_name_lists
 
-city_name_t <- "檜山郡江差町"
+city_name_t <- "常呂郡訓子府町"
+file_name <- paste0(city_name_t, ".rds")
+
+base_plot <- readRDS(here::here('04.analyze','synthetic_control',
+                                'add_outcome_predictor',
+                                'table', file_name))
+
+balance_table <- base_plot %>% 
+  tidysynth::grab_balance_table()
+
+
+colnames(balance_table) <- c("")
+
+
+treatment_name_lists
   
   
 create_placebo_plot <- function(city_name_t, placebo_df_after){
@@ -34,25 +48,29 @@ create_placebo_plot <- function(city_name_t, placebo_df_after){
   title_name <- unique(based_data$city_name)
   
   treatment_unit <- based_data %>% 
-    dplyr::filter(.placebo == 0)
+    dplyr::filter(.placebo == 0) 
   
   control_unit <- based_data %>% 
-    dplyr::filter(.placebo == 1)
+    dplyr::filter(.placebo == 1) 
   
   
-  output_plot <- ggplot(based_data, aes(x = time_unit,
-                                        y = diff, 
-                                        group = city_id,
-                                        colour = .placebo,
-                                        size = .placebo)) +
-    geom_line() +
-    theme_bw(base_family = "HiraKakuPro-W3") +
-    theme(legend.position = "none") +
-    scale_color_manual(values = c("black", "gray")) +
-    labs(title = title_name,
-         y = "population",
-         x = "year") +
-    scale_size_manual(values = c(1, 0.5))
+  int_year <- unique(treatment_unit$treatment_year) 
+  
+  
+  
+  # output_plot <- ggplot(based_data, aes(x = time_unit,
+  #                                       y = diff, 
+  #                                       group = city_id,
+  #                                       colour = .placebo,
+  #                                       size = .placebo)) +
+  #   geom_line() +
+  #   theme_bw(base_family = "HiraKakuPro-W3") +
+  #   theme(legend.position = "none") +
+  #   scale_color_manual(values = c("black", "gray")) +
+  #   labs(title = title_name,
+  #        y = "population",
+  #        x = "year") +
+  #   scale_size_manual(values = c(1, 0.5))
   
   
   output_plot <- ggplot() +
@@ -66,17 +84,30 @@ create_placebo_plot <- function(city_name_t, placebo_df_after){
     geom_line(treatment_unit,mapping = aes(x = time_unit, 
                                   y = diff,
                                   group = city_id,
-                                  colour = "black")) +
+                                  colour = "black"),
+              size = 1) +
     theme_bw(base_family = "HiraKakuPro-W3") +
-    theme(legend.position = "none") +
+    geom_vline(xintercept = int_year - 1, linetype = "dashed", size = 0.8) +
+    theme(plot.title = element_text(size = 13),
+          axis.text.x = element_text(size = 11),
+                                     # angle = 45,
+                                     # hjust = 0.5,
+                                     # vjust = 0.5),
+          axis.text.y = element_text(size = 11),
+          axis.title.x = element_blank(),
+          # axis.title.y = element_blank(),
+          legend.position = "none",
+          legend.text = element_text(size=11)) +
     labs(title = title_name,
-         y = "population",
-         x = "year") +
-    scale_size_manual(values = c(1, 0.5))
+         y = "処置効果",
+         x = "Year") +
+    scale_size_manual(values = c(1, 0.5)) +
+    scale_x_continuous(breaks = c(1995,int_year - 1)) 
     
   output_plot
   
   file_name <- paste0(city_name_t, ".png")
+  # file_name <- "example_placebo.png"
 
   ggsave(output_plot, file = here::here('04.analyze',
                                         'synthetic_control',
@@ -124,6 +155,8 @@ sign_df <- table_based_df %>%
 
 mean(sign_df$diff)
   
+
+plot_1
   
 
 
@@ -151,9 +184,11 @@ p_sum <- (plot_1 + plot_2 +plot_3+
   plot_layout(nrow = 5,
               ncol = 3,
               widths = c(1,1,1),
-              heights = c(1,1,1,1,1))  
+              heights = c(1,1,1,1,1))
 
 
+
+p_sum
 
 ggsave(p_sum, filename = here::here('04.analyze','synthetic_control', 
                                     'add_outcome_predictor', 'appendix','placebo_plot.png'),
@@ -163,3 +198,7 @@ ggsave(p_sum, filename = here::here('04.analyze','synthetic_control',
 
 library(patchwork)
 
+control_df <- master_data %>% 
+  dplyr::filter(dummy == 0)
+
+name_cont <- distinct(control_df, city_name)

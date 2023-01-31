@@ -10,27 +10,44 @@ main <- function(){
                   city_name != "十和田市",
                   city_name != "行方市"
     )   
+  # 
+  # treatment_data <- treatment_data %>% 
+  #   dplyr::ungroup() %>% 
+  #   dplyr::group_by(city_id, year) %>% 
+  #   dplyr::mutate(elderly = sum(r65_69,
+  #                               r70_74,
+  #                               r75_79,
+  #                               r80_over),
+  #                 .after = r80_over) %>% 
+  #   dplyr::mutate(aging_rate = elderly/total,
+  #                 .after = elderly)   
   
-  treatment_data <- treatment_data %>% 
-    dplyr::ungroup() %>% 
-    dplyr::group_by(city_id, year) %>% 
-    dplyr::mutate(elderly = sum(r65_69,
-                                r70_74,
-                                r75_79,
-                                r80_over),
-                  .after = r80_over) %>% 
-    dplyr::mutate(aging_rate = elderly/total,
-                  .after = elderly)   
+  five_df <- five_year_bar_df %>% 
+    dplyr::select(city_name, treatment_year,
+                  five_diff)
   
+  ten_df <- ten_year_bar_df %>% 
+    dplyr::select(city_name, treatment_year,
+                  ten_diff)
+  
+  
+  five_ten_table <- dplyr::left_join(five_df, ten_df) %>% 
+    dplyr::mutate(five_diff = round(five_diff, 3)) %>% 
+    dplyr::mutate(ten_diff = round(ten_diff, 3))
+  
+  write.csv(five_ten_table, here::here('04.analyze', 'synthetic_control',
+                                       'add_outcome_predictor',
+                                       'five_ten_table', 'five_ten_table.csv'),
+            fileEncoding = "CP932", row.names = FALSE)
+  
+  # five_ten_table <- read.csv(here::here('04.analyze', 'synthetic_control',
+  #                                       'add_outcome_predictor',
+  #                                       'five_ten_table', 'five_ten_table.csv'),
+  #                            fileEncoding = "CP932")
   
   treatment_name_lists <- unique(treatment_data$city_name)
   
   covariate_df <- add_cross_cov(treatment_data)
-  
-  five_ten_table <- read.csv(here::here('04.analyze', 'synthetic_control',
-                                        'add_outcome_predictor',
-                                        'five_ten_table', 'five_ten_table.csv'),
-                             fileEncoding = "CP932")
   
   all_data_df <- dplyr::left_join(five_ten_table, covariate_df)
   
@@ -38,9 +55,8 @@ main <- function(){
                                            'synthetic_control',
                                            'add_outcome_predictor',
                                            'cross_plot_base',
-                                           'Jan_24_data.csv'),
+                                           'Jan_30_data.csv'),
             fileEncoding = "CP932", row.names = FALSE)
-  
   
   
   five_df <- diff_all_data %>% 
@@ -53,27 +69,35 @@ main <- function(){
   
   df_name_list <- unique(five_df$city_name)
   
-  plot_based_data <- add_cross_cov(treatment_data, add_length_data)
+  # plot_based_data <- add_cross_cov(treatment_data, add_length_data)
   
-  plot_based_data <- read.csv(file = here::here('04.analyze',
-                                                'synthetic_control',
-                                                'add_outcome_predictor',
-                                                'cross_plot_base',
-                                                'Jan_24_data.csv'),
-                              fileEncoding = "CP932")
+  # plot_based_data <- read.csv(file = here::here('04.analyze',
+  #                                               'synthetic_control',
+  #                                               'add_outcome_predictor',
+  #                                               'cross_plot_base',
+  #                                               'Jan_24_data.csv'),
+  #                             fileEncoding = "CP932")
   
   
   fci_df <- change_fci(treatment_name_lists)
   
-  plot_based_data <- dplyr::left_join(plot_based_data, fci_df) %>% 
+  plot_based_data <- dplyr::left_join(all_data_df, fci_df) %>% 
     dplyr::relocate(region_name, .after = city_name)
+  
+  main_city_df <- readxl::read_xlsx(here::here('02.raw',
+                                               'main_city_distance.xlsx'))
   
   write.csv(plot_based_data, file = here::here('04.analyze',
                                                'synthetic_control',
                                                'add_outcome_predictor',
                                                'cross_plot_base',
-                                               'Jan_25_data.csv'),
+                                               'Jan_30_data.csv'),
             fileEncoding = "CP932", row.names = FALSE)
+  # 
+  
+  plot_based_data <- left_join(plot_based_data, main_city_df,
+                               by = c("city_name", "region_name"))
+  
   
   
 }
@@ -128,7 +152,7 @@ add_cross_cov <- function(treatment_data){
   cov_only_data <- treatment_data %>% 
     dplyr::select(city_name, city_name, line_name, year, treatment_year, line_name, total,
                   middle, children_household_percent, own_household_percent,
-                  train_pop_percent, houseyear_pop_percent, aging_rate)
+                  train_pop_percent, houseyear_pop_percent)
   
   colnames(treatment_data)
   
@@ -140,8 +164,7 @@ add_cross_cov <- function(treatment_data){
               middle_mean = mean(middle, na.rm = TRUE),
               children_mean = mean(children_household_percent, na.rm = TRUE),
               train_mean = mean(train_pop_percent, na.rm = TRUE),
-              treatment_year = treatment_year,
-              aging_mean = mean(aging_rate, na.rm = TRUE))
+              treatment_year = treatment_year)
   
   output_data <- left_join(cov_mean_data, length_df) %>% 
     dplyr::distinct()

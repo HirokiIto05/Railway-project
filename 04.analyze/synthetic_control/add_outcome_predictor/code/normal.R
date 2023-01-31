@@ -1,9 +1,94 @@
+placebo_df <- read.csv(here::here('04.analyze','synthetic_control',
+                                  'add_outcome_predictor',
+                                  'placebo_table', 'placebo_data.csv'),
+                       fileEncoding = "CP932")
+
+
+test_df <- placebo_df %>% 
+  dplyr::filter(time_unit >= treatment_year) 
+
+placebo_average_df <- test_df %>%
+  dplyr::ungroup() %>%
+  dplyr::group_by(city_id, city_name) %>% 
+  dplyr::summarise(placebo_average = mean(diff, na.rm = TRUE))
+
+
+average_t <- test_df %>% 
+  dplyr::filter(.placebo == 0) %>% 
+  dplyr::ungroup() %>% 
+  dplyr::group_by() %>% 
+  dplyr::group_by(city_id, city_name) %>% 
+  dplyr::summarise(placebo_average = mean(diff, na.rm = TRUE)) 
+  # dplyr::ungroup() %>% 
+  # dplyr::distinct(placebo_average) %>% 
+  # unlist() %>% 
+  # as.numeric()
+
+
 hist_average <- ggplot(placebo_average_df , aes(x = placebo_average),fill="gray",
                  colour="black") +
   geom_histogram(bins = 30,fill="lightgray",
                  colour="black") +
   labs(x = "Placebo effect",
        y = "Frequency") +
+  geom_vline(data = average_t,
+             aes(xintercept = placebo_average),
+             linetype = "longdash", colour = "black")  +
+  theme_bw(base_family = "HiraKakuProN-W3") +
+  theme(axis.text.x = element_text(size = 13),
+        axis.text.y = element_text(size = 13),
+        axis.title = element_text(size = 13))
+
+hist_average
+
+ggsave(hist_average, filename = here::here('04.analyze','synthetic_control',
+                                           'add_outcome_predictor',
+                                           'normal', 'normal_ando.png'))
+
+q_average <- data.frame(quantile = quantile(placebo_average_df$placebo_average,
+                                            c(.025, .05, .95, .975)))
+
+q_list <- quantile(placebo_average_df$placebo_average,
+                   c(.025, .05, .95, .975))
+
+ks.test(placebo_average_df$placebo_average, "pnorm",
+        mean = mean(placebo_average_df$placebo_average),
+        sd = sd(placebo_average_df$placebo_average))
+
+
+for(i in treatment_name_lists){
+  
+  i_df <- average_t %>% 
+    dplyr::filter(city_name == i) 
+  
+  i_num <- i_df$placebo_average
+  
+  if(i_num < q_list[1] | i_num > q_list[4]){
+    
+    print(i)
+    
+  }
+  
+  
+}
+
+
+
+
+all_year <- placebo_df %>% 
+  dplyr::ungroup() %>%
+  dplyr::group_by(city_id, city_name) %>% 
+  dplyr::summarise(placebo_average = mean(diff, na.rm = TRUE))
+
+all_hist_average <- ggplot(all_year, aes(x = placebo_average),fill="gray",
+                       colour="black") +
+  geom_histogram(bins = 30,fill="lightgray",
+                 colour="black") +
+  labs(x = "Placebo effect",
+       y = "Frequency") 
+
+all_hist_average
+
   # scale_fill_manual(values=c("gray","black")) +
   # stat_function(fun = dnorm, 
   #               args = list(mean = mean(ten_after_df$diff),

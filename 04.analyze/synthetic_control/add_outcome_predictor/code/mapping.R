@@ -131,7 +131,11 @@ test_jp <- read_sf(here::here('02.raw',
 japangeo_df <- japan_geo3 %>% 
   dplyr::filter(dummy %in% c("0","1")) %>% 
   dplyr::select(KEN, geometry, dummy) %>% 
-  dplyr::rename(prefecture = KEN) 
+  dplyr::rename(prefecture = KEN) %>% 
+  dplyr::mutate(dummy = ifelse((dummy == "1"),"Treatment","Control"))
+
+
+japangeo_df <- m
 
 
 
@@ -142,7 +146,7 @@ colnames(test_jp)
 
 
 
-MyPalette <- c("gray", "black","white")
+MyPalette <- c("gray", "white","black")
 
 tmap_japan <- tm_shape(japan_map_df) +
   tm_borders() +
@@ -151,7 +155,7 @@ tmap_japan <- tm_shape(japan_map_df) +
     style = "order",
     title = "City Type",
     # title = "density",
-    breaks = c("NA", "0", "1"),
+    breaks = c("NA", "Control", "Treatment"),
     palette = MyPalette) +
   tm_layout(legend.show = FALSE) +
   tm_shape(japangeo_df) +
@@ -159,18 +163,20 @@ tmap_japan <- tm_shape(japan_map_df) +
     col =  "dummy",
     style = "order",
     title = "City",
-    breaks = c("0", "1"),
+    breaks = c("Control", "Treatment"),
     palette = c("gray", "black")) +
     tm_layout(legend.show = TRUE,
               frame = FALSE,
               legend.outside = TRUE) 
-    tmap_options(check.and.fix = TRUE) 
+    # tmap_options(check.and.fix = TRUE) 
   
   # tmap_options_reset()
+    
+tmap_japan
 
 tmap_save(tmap_japan, filename = here::here('04.analyze','synthetic_control',
-                                         'add_outcome_predictor',
-                                         'mapping', 'japan_map.png'))
+                                            'add_outcome_predictor',
+                                            'mapping', 'japan_map_legend.png'))
 
 
 
