@@ -5,9 +5,8 @@ main <- function(){
   
   year_list <- seq(1995,2019)
   
-  new_data <- lapply(year_list, aggregate_pop, short_lists, long_lists) %>% 
-    dplyr::bind_rows() %>% 
-    dplyr::filter(gender == "計")
+  int_pop_data <- lapply(year_list, aggregate_pop, short_lists, long_lists) %>% 
+    dplyr::bind_rows() 
   
   
   # new_data <- load_data()
@@ -43,14 +42,14 @@ make_short_lists <- function(){
   return(short_lists)
 }
 
+base_year <- 2015
 
 aggregate_pop <- function(base_year, short_lists, long_lists){
   
   if(base_year <= 2014){
-    file_a <- paste0(base_year, '.xls') 
-    file_name <- here::here('02.raw', 'age', file_a) 
+    file_n <- paste0(base_year, '.xls') 
+    file_name <- here::here('02.raw', 'age', file_n) 
     new_data <-  readxl::read_xls(file_name) 
-    
     
     colnames(new_data) <- short_lists
     
@@ -66,8 +65,8 @@ aggregate_pop <- function(base_year, short_lists, long_lists){
     new_data <- bind_cols(cha_only, num_only)
     
   } else {
-    file_a <- paste0(base_year, '.xls') 
-    file_name <- here::here('02.raw', 'age', file_a) 
+    file_n <- paste0(base_year, '.xls') 
+    file_name <- here::here('02.raw', 'age', file_n) 
     new_data <-  readxl::read_xls(file_name) 
     
     colnames(new_data) <- long_lists
@@ -100,6 +99,8 @@ aggregate_pop <- function(base_year, short_lists, long_lists){
 
 
 
+
+
 five_func <- function(id){
   
   new_id <- id
@@ -111,20 +112,16 @@ five_func <- function(id){
   return(new_id)
 }
 
-change_id <- function(new_data){
+change_id <- function(int_pop_data){
   
-  city_id_only <- new_data %>% 
-    select(city_id)
+  new_id <- int_pop_data %>% 
   
-  city_id_list <- city_id_only %>% 
-    unlist() %>%
-    as.character()
+  output_data <- int_pop_data %>% 
+    dplyr::mutate(city_id = stringr::str_sub(int_pop_data$city_id, 
+                     start = 1,
+                     end = length(int_pop_data$city_id) - 1))
   
-  new_id_list <- lapply(city_id_list, five_func) %>% 
-    unlist()
-  
-  new_data <- new_data %>% 
-    mutate(city_id = new_id_list)
+
   
   return(new_data)
   
