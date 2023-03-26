@@ -11,6 +11,12 @@ main <- function(){
                   rent_household = as.numeric(sub(",", "", rent_household)),
                   rent_pop = as.numeric(sub(",", "", rent_pop)))
   
+  
+  write.csv(all_housetype_data, 
+            file = here::here('03.build','housetype','data','housetype_data.csv'),
+            fileEncoding = "CP932",
+            row.names = FALSE)
+  
 }
 
 
@@ -98,6 +104,3 @@ read_housetype_csv <- function(year_n){
   return(own_rent_data)
   
 }
-
-
-save_csv(all_housetype_data, "housetype", "all.csv")

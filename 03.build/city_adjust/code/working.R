@@ -1,11 +1,8 @@
 main(){
   
-  reduce_id_list <- c(4216,40231)
+  all_working_data <- load_csv("working", "all.csv")
   
-  # all_working_data <- load_csv("working", "all.csv")
-  all_working_data <- all_working_data %>% 
-    dplyr::filter(city_id != 4216,
-                  city_id != 40231)
+  #国勢調査以降に合併した市町村については、データ処理の観点から除外している。
   adjust_df <- adjust_data() %>% 
     dplyr::filter(id_muni2020 != 4216,
                   id_muni2020 != 40231)
@@ -18,8 +15,6 @@ main(){
   save_table(fin_data, 'all_working_data.csv')
   
 }
-
-
 
 adjust_data <- function(){
   
@@ -71,7 +66,7 @@ adjust_city_id <- function(id_n, all_working_data, adjust_df){
   city_id_n = city_data[,1]
   city_name_n = city_data[,2]
   
-  output_data <- summarise(pop_id_n,
+  output_data <- dplyr::summarise(pop_id_n,
                            workforce_pop = sum(workforce_pop),
                            working_pop = sum(working_pop),
                            student_pop = sum(student_pop)

@@ -8,14 +8,34 @@ main <- function(){
   int_pop_data <- lapply(year_list, aggregate_pop, short_lists, long_lists) %>% 
     dplyr::bind_rows() 
   
+  age_data <- change_id(int_pop_data)
   
-  # new_data <- load_data()
+  city_name_list <- age_data$city_name
   
-  age_data <- change_id(new_data)
-  add_data <- add_working(age_data)
- 
-  save_table(add_data) 
- 
+  hh <- "市町村"
+  
+  tt <- "檜山郡江差町*"
+  
+  str_sub(tt, start = 1, end = nchar(tt)-1)
+  
+  str_detect(tt, pattern = '*')
+  
+  small_ss <- dplyr::filter(city_name_df, str_detect(city_name, "\\*")) %>% 
+    dplyr::distinct()
+  
+  small_test <- str_detect(city_name_df, pattern = "\\*")
+  
+  new_name_df <- purrr::map(city_name_list, replace_str) %>% 
+    dplyr::bind_rows()
+  
+  apply(city_name_df, 1, replace_str)
+  
+  new_city_name_list <- stringr::str_replace_all(city_name_list, 
+                                                 pattern = "*",
+                                                 replacement = "")
+  
+  save_table(add_data)
+  
 }
 
 
@@ -42,7 +62,7 @@ make_short_lists <- function(){
   return(short_lists)
 }
 
-base_year <- 2015
+# base_year <- 2015
 
 aggregate_pop <- function(base_year, short_lists, long_lists){
   
@@ -98,9 +118,6 @@ aggregate_pop <- function(base_year, short_lists, long_lists){
 }
 
 
-
-
-
 five_func <- function(id){
   
   new_id <- id
@@ -115,42 +132,42 @@ five_func <- function(id){
 change_id <- function(int_pop_data){
   
   new_id <- int_pop_data %>% 
+    dplyr::select(city_id)
+  
+  new_id <- apply(new_id, 1, five_func)
   
   output_data <- int_pop_data %>% 
-    dplyr::mutate(city_id = stringr::str_sub(int_pop_data$city_id, 
-                     start = 1,
-                     end = length(int_pop_data$city_id) - 1))
+    dplyr::mutate(city_id = new_id)
   
-
-  
-  return(new_data)
+  return(output_data)
   
 }
 
-
-add_working <- function(data){
+replace_str <- function(city_name_n){
   
-  output_data <- data %>% 
-    dplyr::ungroup() %>% 
-    dplyr::group_by(city_id, year) %>% 
-    dplyr::mutate(working = sum(r20_24,r25_29,
-                              r30_34,r35_39,
-                              r40_44,r45_49,
-                              r50_54,r55_59,
-                              r60_64))  
-    
+  prim_name(city_name_n)
   
-  return(output_data)
+  new_name <- stringr::str_replace_all(city_name_n,
+                                       pattern = "\\*",
+                                       replacement = "")
+  
+  return(new_name)
   
 }
 
 
 save_table <- function(data){
   
-  write.csv(data, file = here::here('03.build','aggregate','data','age.csv'),
+  write.csv(new_data, file = here::here('03.build','aggregate','data','age.csv'),
             fileEncoding = "CP932", row.names = FALSE)
   
+  writexl::write_xlsx(new_data, 
+                      path = here::here('03.build','aggregate','data','age.xlsx'))
+  
 }
+
+install.packages("writexl")
+library(writexl)
 
 
 
@@ -160,3 +177,5 @@ library(stringr)
 library(tidyr)
 library(ggplot2)
 library(rlang)
+
+install.packages("openxlsx")

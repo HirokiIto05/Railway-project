@@ -14,6 +14,11 @@ main <- function(){
                   train_bicycle_pop = as.numeric(sub(",", "", train_bicycle_pop))
                   ) %>% 
     dplyr::relocate(year, .after = city_name)
+
+  write.csv(all_transport_data,
+            file = here::here('03.build', 'transport','data','all.csv'),
+            fileEncoding = "CP932",
+            row.names = FALSE)
   
 }
 
@@ -134,4 +139,3 @@ read_transport_csv <- function(year_n){
   
 }
 
-# save_csv(all_transport_data, "transport", "all.csv")

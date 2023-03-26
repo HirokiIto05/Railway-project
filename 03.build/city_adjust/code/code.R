@@ -23,7 +23,7 @@ load_pop <- function(){
   
   return(new_data)
 }
-  
+
 
 adjust_data <- function(){
   
@@ -75,21 +75,21 @@ adjust_city_id <- function(id_n, pop_data, adjust_df){
   region_name_n = city_data[,3]
   
   
-  output_data <- summarise(pop_id_n,
-                   male = sum(male),
-                   female = sum(female),             
-                   total  = sum(total),         
-                   household = sum(household),           
-                   birth  = sum(birth),         
-                   move_out = sum(move_out),        
-                   mortality = sum(mortality),        
-                   change    = sum(change),       
-                   change_rate = sum(change_rate),   
-                   natural  = sum(natural),  
-                   natural_rate = sum(natural_rate),
-                   social = sum(social),
-                   social_rate = sum(social_rate),
-  ) %>% 
+  output_data <- dplyr::summarise(pop_id_n,
+                                  male = sum(male),
+                                  female = sum(female),             
+                                  total  = sum(total),         
+                                  household = sum(household),           
+                                  birth  = sum(birth),         
+                                  move_out = sum(move_out),        
+                                  mortality = sum(mortality),        
+                                  change    = sum(change),       
+                                  change_rate = sum(change_rate),   
+                                  natural  = sum(natural),  
+                                  natural_rate = sum(natural_rate),
+                                  social = sum(social),
+                                  social_rate = sum(social_rate),
+                                  ) %>% 
     dplyr::mutate(city_id = city_id_n,
                   city_name = city_name_n,
                   region_name = region_name_n, .before = year)

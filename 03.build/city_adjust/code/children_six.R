@@ -1,11 +1,8 @@
 main(){
   
-  reduce_id_list <- c(4216,40231)
+  child_household_data <- load_csv("children_six", "all_children_data.csv") 
   
-  # child_household_data <- load_csv("children_six", "all.csv") %>% 
-  child_household_data <- all_children_data %>%
-    dplyr::filter(city_id != 4216,
-                  city_id != 40231)
+  #国勢調査以降に合併した市町村については、データ処理の観点から除外している。
   adjust_df <- adjust_data() %>% 
     dplyr::filter(id_muni2020 != 4216,
                   id_muni2020 != 40231)
@@ -15,7 +12,7 @@ main(){
   fin_data <- purrr::map(current_cityid_list, adjust_city_id, child_household_data, adjust_df) %>% 
     bind_rows()
   
-  save_table(fin_data, 'all_children_six_data.csv')
+  save_table(fin_data, 'all.csv')
   
 }
 
@@ -40,6 +37,9 @@ city_id_list20 <- function(data){
   return(output_data)
   
 }
+
+
+id_n <- 1100
 
 adjust_city_id <- function(id_n, child_household_data, adjust_df){
   print(id_n)

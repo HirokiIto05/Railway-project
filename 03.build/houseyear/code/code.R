@@ -5,6 +5,11 @@ main <- function(){
   all_houseyear_data <- purrr::map(year_list, read_houseyear_csv) %>% 
     dplyr::bind_rows()
   
+  write.csv(all_houseyear_data, 
+            file = here::here('03.build','houseyear','data','all.csv'),
+            fileEncoding = "CP932",
+            row.names = FALSE)
+  
 }
 
 read_houseyear_csv <- function(year_n){
@@ -47,6 +52,3 @@ read_houseyear_csv <- function(year_n){
   return(output_data)
   
 }
-
-
-save_csv(all_houseyear_data, "houseyear", "all.csv")

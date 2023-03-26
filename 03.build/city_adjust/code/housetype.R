@@ -1,21 +1,19 @@
 main(){
   
-  reduce_id_list <- c(4216,40231)
-  
-  # all_housetype_data <- load_csv("housetype", "all.csv")
-  all_housetype_data <- all_housetype_data %>% 
-    dplyr::filter(city_id != 4216,
-                  city_id != 40231)
+  all_housetype_data <- load_csv("housetype", "housetype_data.csv")
+
+  #国勢調査以降に合併した市町村については、データ処理の観点から除外している。
   adjust_df <- adjust_data() %>% 
     dplyr::filter(id_muni2020 != 4216,
-                  id_muni2020 != 40231)
+                  id_muni2020 != 40231) #2015年以降合併市町村
   
   current_cityid_list <- city_id_list20(adjust_df)
   
   fin_data <- purrr::map(current_cityid_list, adjust_city_id, all_housetype_data, adjust_df) %>% 
     bind_rows()
   
-  save_table(fin_data, 'all_housetype_data.csv')
+  write.csv(fin_data, here::here('03.build', 'city_adjust', 'data', 'all.csv'),
+            fileEncoding = "CP932", row.names = FALSE)
   
 }
 
@@ -71,7 +69,7 @@ adjust_city_id <- function(id_n, all_housetype_data, adjust_df){
   city_id_n = city_data[,1]
   city_name_n = city_data[,2]
   
-  output_data <- summarise(pop_id_n,
+  output_data <- dplyr::summarise(pop_id_n,
                            own_household = sum(own_household),
                            own_pop = sum(own_pop),
                            rent_household = sum(rent_household),
@@ -96,12 +94,5 @@ long <- function(data){
   return(output_data)
 }
 
-
-save_table <- function(data, file_name){
-  
-  write.csv(data, here::here('03.build', 'city_adjust', 'data', file_name),
-            fileEncoding = "CP932", row.names = FALSE)
-  
-}
 
 

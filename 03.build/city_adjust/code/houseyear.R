@@ -1,27 +1,17 @@
 main(){
   
-  reduce_id_list <- c(4216,40231)
+  houseyear_household_data <- load_csv("houseyear", "all.csv") 
   
-  
-  # houseyear_household_data <- load_csv("houseyear", "all.csv") %>%
-  houseyear_household_data <- all_houseyear_data %>%
-    dplyr::filter(city_id != 4216,
-                  city_id != 40231,
-                  city_id != 3216,
-                  city_id != 11246,
-                  city_id != 12239,
-                  city_id != 17212,
-                  city_id != 23238,
-                  city_id != 43100)
+  #国勢調査以降に合併した市町村については、データ処理の観点から除外している。
   adjust_df <- adjust_data() %>% 
-    dplyr::filter(id_muni2020 != 4216,
-                  id_muni2020 != 40231,
-                  id_muni2020 != 3216,
-                  id_muni2020 != 11246,
-                  id_muni2020 != 12239,
-                  id_muni2020 != 17212,
-                  id_muni2020 != 23238,
-                  id_muni2020 != 43100)
+    dplyr::filter(id_muni2020 != 4216, #2016
+                  id_muni2020 != 40231, #2018
+                  id_muni2020 != 3216, #2014
+                  id_muni2020 != 11246, #2012
+                  id_muni2020 != 12239, #2013
+                  id_muni2020 != 17212, #2011
+                  id_muni2020 != 23238, #2012
+                  id_muni2020 != 43100) #2012
   
   current_cityid_list <- city_id_list20(adjust_df)
   
@@ -53,8 +43,6 @@ city_id_list20 <- function(data){
   return(output_data)
   
 }
-
-id_n = 1100
 
 adjust_city_id <- function(id_n, houseyear_household_data, adjust_df){
   print(id_n)

@@ -1,7 +1,5 @@
 main <- function(){
   
-  
-  
   year_list <- seq(2005, 2019)
   
   fci_data <- purrr::map(year_list, read_power) %>% 
@@ -29,7 +27,6 @@ read_power <- function(year_n){
                                    col_names = FALSE,
                                    skip = 2) %>% 
       dplyr::select(1,2,6)
-    colnames(based_data) <- c("region_name", "city_name", "FCI")
     
   }else if(year_n <= 2010){
     file_name <- here::here('02.raw',
@@ -39,7 +36,6 @@ read_power <- function(year_n){
                                    col_names = FALSE,
                                    skip = 2) %>%
       dplyr::select(1,2,3)
-    colnames(based_data) <- c("region_name", "city_name", "FCI")
   
   }
   else if(year_n <= 2015){
@@ -51,9 +47,7 @@ read_power <- function(year_n){
                                    col_names = FALSE,
                                    skip = 2) %>%
       dplyr::select(2,3,4)
-    
-    colnames(based_data) <- c("region_name", "city_name", "FCI")
-    
+
   }else if(year_n <= 2019){
     file_name <- here::here('02.raw',
                             'power',
@@ -62,9 +56,10 @@ read_power <- function(year_n){
                                     col_names = FALSE,
                                     skip = 2) %>%
       dplyr::select(2,3,4) 
-    colnames(based_data) <- c("region_name", "city_name", "FCI")
   
   }
+  
+  colnames(based_data) <- c("region_name", "city_name", "FCI")
   
   output_data <- based_data %>% 
     dplyr::mutate(year = year_n, .after = city_name) %>% 

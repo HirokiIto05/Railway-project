@@ -1,12 +1,17 @@
 main(){
   
   age_data <- load_age()
-  adjust_df <- adjust_data()
+  adjust_df <- adjust_data() 
+    
   
   current_cityid_list <- city_id_list20(adjust_df)
   
   fin_age <- purrr::map(current_cityid_list, adjust_city_id_age, age_data, adjust_df) %>% 
     bind_rows() 
+  
+  
+  
+  new_city_name
   
 }
 
@@ -15,12 +20,12 @@ load_age <- function(){
   
   new_data <- read.csv(here::here('03.build','aggregate','data','age.csv'),
                        fileEncoding = "CP932", colClasses = "character") %>%
-    dplyr::select(-X) %>% 
     dplyr::mutate(across(.cols = -c(city_id, prefecture, gender, city_name), ~ as.numeric(.x)))
   
   new_data$total <- as.numeric(new_data$total)
   
   return(new_data)
+  
 }
 
 
@@ -44,11 +49,9 @@ city_id_list20 <- function(data){
   
 }
 
-# id_n <- "1361"
-
-
 adjust_city_id_age <- function(id_n, age_data, adjust_df){
   
+  print(id_n)
   
   new_data <- adjust_df %>% 
     dplyr::filter(id_muni2020 == id_n)
@@ -73,7 +76,8 @@ adjust_city_id_age <- function(id_n, age_data, adjust_df){
   city_data <- age_data %>%
     dplyr::filter(year == 2019,
                   city_id == id_n) %>% 
-    select(city_id, city_name, prefecture)
+    select(city_id, city_name, prefecture) %>% 
+    dplyr::distinct()
   
   city_id_n = city_data[,1]
   city_name_n = city_data[,2]
@@ -121,7 +125,31 @@ long <- function(data){
   return(output_data)
 }
 
-data <- fin_age
+
+modify_age_data <- function(age_data){
+  
+  city_name_list <- age_data %>% 
+    dplyr::select(city_name) %>% 
+    unlist() %>% 
+    as.character() 
+  
+  tt <- "檜山郡江差町*"
+  
+  nchar(tt)
+  
+  stringr::str_replace(tt, pattern = "", replacement = "")
+
+  new_city_name_list <- stringr::str_replace_all(city_name_list, 
+                                                 pattern = "[*]",
+                                                 replacement = "")
+  
+  new_city_name_df <- tibble(old_name = city_name_list,
+                             new_name = new_city_name_list)
+  
+  return(new_city_name_list)
+  
+}
+
 
 save_table <- function(data){
   

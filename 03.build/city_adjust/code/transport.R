@@ -1,18 +1,8 @@
 main(){
   
-  reduce_id_list <- c(4216,40231, 3216, 11246)
+  all_transport_data <- load_csv("transport", "all.csv")
   
-  # all_transport_data <- load_csv("transport", "all.csv")
-  all_transport_data <- all_transport_data %>% 
-    dplyr::filter(city_id != 4216,
-                  city_id != 40231,
-                  city_id != 3216,
-                  city_id != 11246,
-                  city_id != 11246,
-                  city_id != 12239,
-                  city_id != 17212,
-                  city_id != 23238,
-                  city_id != 43100)
+  #国勢調査以降に合併した市町村については、データ処理の観点から除外している。
   adjust_df <- adjust_data() %>% 
     dplyr::filter(id_muni2020 != 4216,
                   id_muni2020 != 40231,
@@ -31,7 +21,6 @@ main(){
   save_table(fin_data, 'all_transport_data.csv')
   
 }
-
 
 
 adjust_data <- function(){

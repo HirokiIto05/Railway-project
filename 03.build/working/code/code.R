@@ -11,6 +11,11 @@ main <- function(){
                   student_pop = as.numeric(sub(",", "", student_pop))
     )
   
+  write.csv(all_working_data,
+            file = here::here('03.build','working', 'data','all.csv'),
+            fileEncoding = "CP932",
+            row.names = FALSE)
+  
 }
 
 
@@ -107,5 +112,3 @@ read_working_csv <- function(year_n){
   
 }
 
-
-save_csv(all_working_data, "working", "all.csv")

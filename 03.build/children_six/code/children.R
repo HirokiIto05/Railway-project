@@ -1,10 +1,11 @@
 main <- function(){
   
-  
   year_list <- seq(1995,2015,by= 5)
   
   all_children_data <- purrr::map(year_list, read_child_csv) %>% 
     dplyr::bind_rows()
+  
+  save_table(all_children_data)
   
   
 }
@@ -40,7 +41,13 @@ read_child_csv <- function(year_n){
 }
 
 
-write.csv(all_children_data, )
+save_table <- function(all_children_data){
+  
+  write.csv(all_children_data, 
+            file = here::here('03.build','children_six','data','all_children_data.csv'),
+            fileEncoding = "CP932", row.names = FALSE)
+  
+}
 
 
 
