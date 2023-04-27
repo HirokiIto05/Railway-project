@@ -7,8 +7,8 @@ main <- function(){
   
   write.csv(fci_data, 
             here::here('03.build',
-                       'power',
-                       'data', 'fci_data.csv'),
+                       'power', 'data', 
+                       'fci_data.csv'),
             fileEncoding = "CP932", 
             row.names = FALSE)
   

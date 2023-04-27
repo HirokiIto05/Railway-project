@@ -9,19 +9,14 @@ main <- function(){
   
 }
 
-class(pop_data$city_id)
-class(adjust_list$city_id)
-
 load_main <- function(passenger_num){
   
   new_data <- readxl::read_xlsx(here::here('02.raw','continue.xlsx')) %>% 
-    dplyr::filter(passenger %in% c("1","2","3","4")) 
+    dplyr::filter(passenger %in% c("1","2","3","4"))
   
   return(new_data)
   
 }
-
-
 
 load_pop <- function(){
   
@@ -33,7 +28,6 @@ load_pop <- function(){
   
   return(new_data)
 }
-
 
 integrate_id <- function(main_data, pop_data){
   
@@ -89,7 +83,6 @@ integrate_id <- function(main_data, pop_data){
   return(final_data)
 }
 
-
 save_table <- function(integrated_control){
   
   folder_name <- here::here('03.build','integrate','data','control_data')
@@ -100,8 +93,6 @@ save_table <- function(integrated_control){
   
   
 }
-
-# save_table(integrated_control)
 
 
 library(dplyr)

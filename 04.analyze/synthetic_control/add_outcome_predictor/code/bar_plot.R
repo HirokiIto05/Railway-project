@@ -141,7 +141,6 @@ create_bar_plot <- function(year_i, diff_all_data){
   
   ggsave(output_plot_ten, filename = file_name_ten, width = 4, height = 2.7 * 0.85)
   
-  
 }
 
 output_plot_15 <- output_plot_five + output_plot_ten +

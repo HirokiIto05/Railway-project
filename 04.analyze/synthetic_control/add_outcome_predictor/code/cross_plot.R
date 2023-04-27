@@ -227,38 +227,38 @@ ggsave(children_two_plot,
 
 
 library(patchwork)
-
-five_cross <-  (own_diff | total_diff)/
-  (intyear_diff | main_diff)/
-  (length_diff + fci_diff)
-
-ten_cross <-  (own_diff_ten | total_diff_ten)/
-  (intyear_diff_ten + main_diff_ten)/
-  (length_diff_ten | fci_diff_ten) 
-
-group_first <- 
-  (own_diff | own_diff_ten)/
-  (total_diff | total_diff_ten)/
-  (length_diff | length_diff_ten)
-
-group_first
-
-group_second <- 
-  (main_diff | main_diff_ten)/
-  (fci_diff | fci_diff_ten)/
-  (intyear_diff | intyear_diff_ten)
-
-group_second
-
-ggsave(group_first, filename = here::here('04.analyze','synthetic_control', 
-                                         'add_outcome_predictor','cross_plot',
-                                         "first_group.png"),
-       device = "png",  width = 8, height = 10)
-
-ggsave(group_second, filename = here::here('04.analyze','synthetic_control', 
-                                        'add_outcome_predictor','cross_plot',
-                                        "second_group.png"),
-       device = "png",  width = 8, height = 10)
+# 
+# five_cross <-  (own_diff | total_diff)/
+#   (intyear_diff | main_diff)/
+#   (length_diff + fci_diff)
+# 
+# ten_cross <-  (own_diff_ten | total_diff_ten)/
+#   (intyear_diff_ten + main_diff_ten)/
+#   (length_diff_ten | fci_diff_ten) 
+# 
+# group_first <- 
+#   (own_diff | own_diff_ten)/
+#   (total_diff | total_diff_ten)/
+#   (length_diff | length_diff_ten)
+# 
+# group_first
+# 
+# group_second <- 
+#   (main_diff | main_diff_ten)/
+#   (fci_diff | fci_diff_ten)/
+#   (intyear_diff | intyear_diff_ten)
+# 
+# group_second
+# 
+# ggsave(group_first, filename = here::here('04.analyze','synthetic_control', 
+#                                          'add_outcome_predictor','cross_plot',
+#                                          "first_group.png"),
+#        device = "png",  width = 8, height = 10)
+# 
+# ggsave(group_second, filename = here::here('04.analyze','synthetic_control', 
+#                                         'add_outcome_predictor','cross_plot',
+#                                         "second_group.png"),
+#        device = "png",  width = 8, height = 10)
 
 
 create_cross_plot <- function(plot_based_data, cross_var, 
