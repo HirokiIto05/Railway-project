@@ -3,7 +3,7 @@ main <- function(){
   age_data <- load_data()
   main_data <- load_main()
   
-  control_age <- integrate_id(main_data, age_data) %>% 
+  control_age <- integrate_id(main_data, age_data) |> 
     dplyr::filter(city_id != 12441,
                   city_id != 31325)
   
@@ -35,20 +35,20 @@ load_data <- function(){
 
 integrate_id <- function(main_data, age_data){
   
-  adjust_list <- distinct(main_data, city_id) %>% 
+  adjust_list <- distinct(main_data, city_id) |> 
     na.omit()
   
-  current_id <- dplyr::distinct(main_data, adjust_id) %>% 
-    na.omit() %>% 
-    unlist() %>% 
+  current_id <- dplyr::distinct(main_data, adjust_id) |> 
+    na.omit() |> 
+    unlist() |> 
     as.character()
   
-  old_new_number <- main_data %>% 
-    dplyr::select(city_id, adjust_id) %>% 
+  old_new_number <- main_data |> 
+    dplyr::select(city_id, adjust_id) |> 
     na.omit() 
   
-  current_city_name <- main_data %>% 
-    dplyr::filter(city_id %in% current_id) %>% 
+  current_city_name <- main_data |> 
+    dplyr::filter(city_id %in% current_id) |> 
     dplyr::select(city_id, city_name)
   
   adjust_list$city_id <- as.numeric(adjust_list$city_id)
@@ -56,8 +56,8 @@ integrate_id <- function(main_data, age_data){
   
   pop_old_data <- dplyr::left_join(adjust_list, age_data, by = "city_id")
   
-  pop_new_data <- dplyr::left_join(pop_old_data, old_new_number, by = "city_id") %>% 
-    dplyr::relocate(adjust_id, .after = city_id) %>% 
+  pop_new_data <- dplyr::left_join(pop_old_data, old_new_number, by = "city_id") |> 
+    dplyr::relocate(adjust_id, .after = city_id) |> 
     dplyr::group_by(adjust_id, year)
   
   
@@ -65,14 +65,14 @@ integrate_id <- function(main_data, age_data){
                                pop = sum(total),
                                working = sum(working))
   
-  # new_data <- new_data %>% 
+  # new_data <- new_data |> 
   #   mutate(percentage = (social_increase/lag(pop))*100)
   
-  output_data <- current_city_name %>% 
+  output_data <- current_city_name |> 
     left_join(new_data, by = c("city_id" = "adjust_id")) 
   
-  output_data <- output_data %>% 
-    filter(city_id != 45442) %>% 
+  output_data <- output_data |> 
+    filter(city_id != 45442) |> 
     dplyr::mutate(treatment_year = 0, .after = city_name)
   
   return(output_data)
@@ -82,7 +82,7 @@ add_percent <- function(data){
   
   city_id_lists <- unique(data$city_id)
   
-  output_data <- lapply(city_id_lists, calculate_percent, data) %>% 
+  output_data <- lapply(city_id_lists, calculate_percent, data) |> 
     dplyr::bind_rows()
   
   return(output_data)
@@ -92,14 +92,14 @@ add_percent <- function(data){
 
 calculate_percent <- function(id,data){
   
-  id_n <- data %>% 
+  id_n <- data |> 
     dplyr::filter(city_id == id,
-                  year == 1995) %>% 
-    dplyr::select(working) %>% 
+                  year == 1995) |> 
+    dplyr::select(working) |> 
     as.numeric()
   
-  new_data <- data %>% 
-    dplyr::filter(city_id == id) %>% 
+  new_data <- data |> 
+    dplyr::filter(city_id == id) |> 
     dplyr::mutate(percent = working/id_n)
   
   return(new_data)
@@ -109,10 +109,10 @@ data <- control_age
 
 for(id in city_id_lists){
   print(id)
-  id_n <- data %>% 
+  id_n <- data |> 
     dplyr::filter(city_id == id,
-                  year == 1995) %>% 
-    dplyr::select(working) %>% 
+                  year == 1995) |> 
+    dplyr::select(working) |> 
     as.numeric()
 }
 

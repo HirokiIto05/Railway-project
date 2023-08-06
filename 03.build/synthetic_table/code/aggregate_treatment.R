@@ -2,9 +2,9 @@ main <- function(){
   
   treatment_data <- load_data("master_data", "treatment_data.csv")
   
-  treatment_id_list <- treatment_data %>% 
-    dplyr::distinct(city_id) %>% 
-    unlist() %>% 
+  treatment_id_list <- treatment_data |> 
+    dplyr::distinct(city_id) |> 
+    unlist() |> 
     as.character()
   
   all_synthetic_data <- aggregate_synth(treatment_data)
@@ -28,8 +28,8 @@ read_each_treatment <- function(id){
   synth_data <- readRDS(here::here('04.analyze','synthetic_control', 'figure',
                                    'synth_each', 'working', 'table', file_name))
   
-  output_data <- synth_data %>% 
-    grab_synthetic_control() %>% 
+  output_data <- synth_data |> 
+    grab_synthetic_control() |> 
     dplyr::mutate(city_id = id, .before = time_unit)
   
   return(output_data)
@@ -39,12 +39,12 @@ read_each_treatment <- function(id){
 
 aggregate_synth <- function(treatment_data){
   
-  id_lists <- treatment_data %>% 
-    dplyr::distinct(city_id) %>% 
-    unlist() %>% 
+  id_lists <- treatment_data |> 
+    dplyr::distinct(city_id) |> 
+    unlist() |> 
     as.character()
   
-  output_data <- purrr::map(id_lists, read_each_treatment) %>% 
+  output_data <- purrr::map(id_lists, read_each_treatment) |> 
     dplyr::bind_rows()
   
   return(output_data)

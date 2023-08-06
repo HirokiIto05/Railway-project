@@ -4,24 +4,24 @@ placebo_df <- read.csv(here::here('04.analyze','synthetic_control',
                        fileEncoding = "CP932")
 
 
-test_df <- placebo_df %>% 
+test_df <- placebo_df |> 
   dplyr::filter(time_unit >= treatment_year) 
 
-placebo_average_df <- test_df %>%
-  dplyr::ungroup() %>%
-  dplyr::group_by(city_id, city_name) %>% 
+placebo_average_df <- test_df |>
+  dplyr::ungroup() |>
+  dplyr::group_by(city_id, city_name) |> 
   dplyr::summarise(placebo_average = mean(diff, na.rm = TRUE))
 
 
-average_t <- test_df %>% 
-  dplyr::filter(.placebo == 0) %>% 
-  dplyr::ungroup() %>% 
-  dplyr::group_by() %>% 
-  dplyr::group_by(city_id, city_name) %>% 
+average_t <- test_df |> 
+  dplyr::filter(.placebo == 0) |> 
+  dplyr::ungroup() |> 
+  dplyr::group_by() |> 
+  dplyr::group_by(city_id, city_name) |> 
   dplyr::summarise(placebo_average = mean(diff, na.rm = TRUE)) 
-  # dplyr::ungroup() %>% 
-  # dplyr::distinct(placebo_average) %>% 
-  # unlist() %>% 
+  # dplyr::ungroup() |> 
+  # dplyr::distinct(placebo_average) |> 
+  # unlist() |> 
   # as.numeric()
 
 
@@ -58,7 +58,7 @@ ks.test(placebo_average_df$placebo_average, "pnorm",
 
 for(i in treatment_name_lists){
   
-  i_df <- average_t %>% 
+  i_df <- average_t |> 
     dplyr::filter(city_name == i) 
   
   i_num <- i_df$placebo_average
@@ -75,9 +75,9 @@ for(i in treatment_name_lists){
 
 
 
-all_year <- placebo_df %>% 
-  dplyr::ungroup() %>%
-  dplyr::group_by(city_id, city_name) %>% 
+all_year <- placebo_df |> 
+  dplyr::ungroup() |>
+  dplyr::group_by(city_id, city_name) |> 
   dplyr::summarise(placebo_average = mean(diff, na.rm = TRUE))
 
 all_hist_average <- ggplot(all_year, aes(x = placebo_average),fill="gray",
@@ -110,7 +110,7 @@ ggsave(hist_average, filename = here::here('04.analyze','synthetic_control',
                                       'normal', 'normal_ando.png'))
 
 
-average_t <- placebo_average_df %>% 
+average_t <- placebo_average_df |> 
   dplyr::filter(.placebo == 0)
 
 placebo
@@ -136,7 +136,7 @@ for(i in treatment_name_lists){
 
 for(i in treatment_name_lists){
 
-  i_df <- average_t %>% 
+  i_df <- average_t |> 
     dplyr::filter(city_name == i) 
   
   i_num <- i_df$placebo_average
@@ -151,7 +151,7 @@ for(i in treatment_name_lists){
 }
 
 
-sig_df <- average_t %>% 
+sig_df <- average_t |> 
   dplyr::filter(city_name %in%  c("檜山郡江差町",
                                   "檜山郡上ノ国町",
                                   "常呂郡訓子府町",
@@ -174,7 +174,7 @@ base_plot <- readRDS(here::here('04.analyze','synthetic_control',
  
 
 balance_table <-  
-  base_plot %>% grab_balance_table() 
+  base_plot |> grab_balance_table() 
 
 
 colnames(balance_table) <- c("variable",
@@ -184,7 +184,7 @@ colnames(balance_table) <- c("variable",
 
 colnames(balance_table)
 
-balance_table_4 <- balance_table %>% 
+balance_table_4 <- balance_table |> 
   dplyr::mutate(treated_city = round(treated_city, 4),
                 synthetic_city= round(synthetic_city, 4),
                 mean_control_group= round(mean_control_group, 4))
@@ -221,9 +221,9 @@ g <- hist(ten_after_df$diff)
 
 f <- g$density
 
-cc <- ten_after_df %>% 
-  dplyr::arrange(diff) %>% 
-  dplyr::mutate(percent = prop.table(diff)) %>% 
+cc <- ten_after_df |> 
+  dplyr::arrange(diff) |> 
+  dplyr::mutate(percent = prop.table(diff)) |> 
   dplyr::mutate(cum_percent = cumsum(percent))
 
 

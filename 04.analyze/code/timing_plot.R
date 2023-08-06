@@ -20,8 +20,8 @@ read_data <- function(){
 
 create_four_categories <- function(timing_data){
   
-  treat_city_id <- distinct(timing_data, city_id) %>% 
-    unlist() %>% 
+  treat_city_id <- distinct(timing_data, city_id) |> 
+    unlist() |> 
     as.character()  
   
   one_name_list <- treat_city_id[1:5]
@@ -42,7 +42,7 @@ create_four_categories <- function(timing_data){
 plot_four_categories <- function(timing_data, category_list){
   
   for (i in 1:4) {
-    plot_data <- timing_data %>% 
+    plot_data <- timing_data |> 
       filter(city_id %in% unlist(category_list[i]))
   
     file_num <- colnames(as.data.frame(category_list[i]))
@@ -69,7 +69,7 @@ average_plot <- function(timing_data){
   folder_name <- here::here('04.analyze','figure','treatment','did')
   file_name0 <- paste0(folder_name,'/',"average",".png")
   
-  average_data <- timing_data %>% 
+  average_data <- timing_data |> 
     group_by(timing)
   
   mean_list <- summarise(average_data, mean = mean(percentage, na.rm = TRUE))

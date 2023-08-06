@@ -1,14 +1,14 @@
 main <- function(){
   
-  treatment_data <- load_csv('complete', 'treatment_data.csv') %>% 
-    dplyr::filter(treatment_year <= 2015,
-                  city_name != "揖斐郡大野町",
-                  city_name != "本巣郡北方町",
-                  city_name != "珠洲市",
-                  city_name != "鳳珠郡能登町",
-                  city_name != "十和田市",
-                  city_name != "行方市"
-    )   
+  treatment_data <- load_csv('complete', 'treatment_data.csv') |> 
+    # dplyr::filter(treatment_year <= 2015,
+    #               city_name != "揖斐郡大野町",
+    #               city_name != "本巣郡北方町",
+    #               city_name != "珠洲市",
+    #               city_name != "鳳珠郡能登町",
+    #               city_name != "十和田市",
+    #               city_name != "行方市"
+    # )   
   
   treatment_name_lists <- unique(treatment_data$city_name)
   
@@ -35,9 +35,9 @@ read_plot <- function(city_name_t, treatment_data){
                                   'add_outcome_predictor','table', file_name))
   
   
-  tt <- base_plot %>% grab_synthetic_control() 
+  tt <- base_plot |> grab_synthetic_control() 
   
-  int_year <- treatment_data %>% 
+  int_year <- treatment_data |> 
     dplyr::filter(city_name == city_name_t)
   
   region_name_t <- unique(int_year$region_name)
@@ -89,31 +89,31 @@ read_plot <- function(city_name_t, treatment_data){
 
 create_simple <- function(){
   
-  two_df <- synth_data %>% 
+  two_df <- synth_data |> 
     dplyr::filter(city_name == city_name_t|dummy == 0)
   
-  two_smry <- two_df %>% 
-    dplyr::ungroup() %>% 
-    dplyr::group_by(dummy, year) %>% 
-    dplyr::summarise(simple_mean = mean(outcome_percent)) %>% 
+  two_smry <- two_df |> 
+    dplyr::ungroup() |> 
+    dplyr::group_by(dummy, year) |> 
+    dplyr::summarise(simple_mean = mean(outcome_percent)) |> 
     dplyr::ungroup()
   
-  t_df <- synth_data %>% 
-    dplyr::ungroup() %>% 
-    dplyr::filter(dummy == 1) %>% 
-    dplyr::group_by(dummy, year) %>% 
-    dplyr::summarise(simple_mean = mean(outcome_percent)) %>% 
-    dplyr::rename(real_y = simple_mean) %>% 
-    dplyr::ungroup() %>% 
+  t_df <- synth_data |> 
+    dplyr::ungroup() |> 
+    dplyr::filter(dummy == 1) |> 
+    dplyr::group_by(dummy, year) |> 
+    dplyr::summarise(simple_mean = mean(outcome_percent)) |> 
+    dplyr::rename(real_y = simple_mean) |> 
+    dplyr::ungroup() |> 
     dplyr::select(year, real_y)
   
   title_name <- paste0(city_name_t, ':', "北海道")
   
-  plot_df <- dplyr::left_join(two_smry, t_df) %>% 
+  plot_df <- dplyr::left_join(two_smry, t_df) |> 
     dplyr::filter(dummy == 0)
   
-  plot_df <- plot_df %>% 
-    dplyr::select(-dummy) %>% 
+  plot_df <- plot_df |> 
+    dplyr::select(-dummy) |> 
     dplyr::ungroup()
   str(plot_df)
   

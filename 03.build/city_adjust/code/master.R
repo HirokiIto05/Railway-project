@@ -21,7 +21,7 @@ load_data <- function(folder_name, file_name){
 
 create_complete <- function(pop_data, age_data){
   
-  age_data <- age_data %>% 
+  age_data <- age_data |> 
     dplyr::select(-city_name, -region_name, -total)
   
   output_data <- left_join(pop_data, age_data, by = c("year", "city_id"))

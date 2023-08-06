@@ -9,7 +9,7 @@ main <- function() {
    
    treatment_name_lists <- unique(placebo_df$city_name)
    
-   placebo_df_after <- placebo_df %>% 
+   placebo_df_after <- placebo_df |> 
      dplyr::mutate(after = time_unit - treatment_year + 1)
    
    purrr::map(treatment_name_lists, create_placebo_plot ,  placebo_df_after)
@@ -27,7 +27,7 @@ base_plot <- readRDS(here::here('04.analyze','synthetic_control',
                                 'add_outcome_predictor',
                                 'table', file_name))
 
-balance_table <- base_plot %>% 
+balance_table <- base_plot |> 
   tidysynth::grab_balance_table()
 
 
@@ -39,18 +39,18 @@ treatment_name_lists
   
 create_placebo_plot <- function(city_name_t, placebo_df_after){
   
-  based_data <- placebo_df_after %>% 
-    dplyr::filter(city_name == city_name_t) %>% 
-    dplyr::arrange(-city_id) %>% 
+  based_data <- placebo_df_after |> 
+    dplyr::filter(city_name == city_name_t) |> 
+    dplyr::arrange(-city_id) |> 
     dplyr::mutate(city_id = as.character(city_id),
                   .placebo = as.character(.placebo)) 
   
   title_name <- unique(based_data$city_name)
   
-  treatment_unit <- based_data %>% 
+  treatment_unit <- based_data |> 
     dplyr::filter(.placebo == 0) 
   
-  control_unit <- based_data %>% 
+  control_unit <- based_data |> 
     dplyr::filter(.placebo == 1) 
   
   
@@ -121,22 +121,22 @@ create_placebo_plot <- function(city_name_t, placebo_df_after){
 create_placebo_table <- function(placebo_df_after){
   
   
-  ten_table <- placebo_df_after %>% 
+  ten_table <- placebo_df_after |> 
     dplyr::filter(after == 10)
   
   
   colnames(ten_table)
   
-  table_based_df <- ten_table %>% 
+  table_based_df <- ten_table |> 
     dplyr::select(city_name, year, placebo_all, p_value,
                   diff)
 
-  kableExtra::kbl(table_based_df) %>% 
+  kableExtra::kbl(table_based_df) |> 
     kableExtra::kable_classic_2()
 }
 
-ten_table_mod <- ten_table %>% 
-  dplyr::select(city_name, diff, p_value) %>% 
+ten_table_mod <- ten_table |> 
+  dplyr::select(city_name, diff, p_value) |> 
   dplyr::mutate(p_value = round(p_value, 3),
                 diff = round(diff, 4))
 
@@ -150,7 +150,7 @@ write.csv(ten_table_mod,
           row.names = FALSE)
 
 
-sign_df <- table_based_df %>% 
+sign_df <- table_based_df |> 
   dplyr::filter(p_value < 0.2)
 
 mean(sign_df$diff)
@@ -198,7 +198,7 @@ ggsave(p_sum, filename = here::here('04.analyze','synthetic_control',
 
 library(patchwork)
 
-control_df <- master_data %>% 
+control_df <- master_data |> 
   dplyr::filter(dummy == 0)
 
 name_cont <- distinct(control_df, city_name)

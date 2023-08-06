@@ -1,6 +1,6 @@
 main <- function(){
   
-  treatment_data <- load_csv('complete', 'treatment_data.csv') %>% 
+  treatment_data <- load_csv('complete', 'treatment_data.csv') |> 
     dplyr::filter(treatment_year <= 2015,
                   city_name != "揖斐郡大野町",
                   city_name != "本巣郡北方町",
@@ -11,28 +11,28 @@ main <- function(){
                   city_name != "行方市"
     )   
   # 
-  # treatment_data <- treatment_data %>% 
-  #   dplyr::ungroup() %>% 
-  #   dplyr::group_by(city_id, year) %>% 
+  # treatment_data <- treatment_data |> 
+  #   dplyr::ungroup() |> 
+  #   dplyr::group_by(city_id, year) |> 
   #   dplyr::mutate(elderly = sum(r65_69,
   #                               r70_74,
   #                               r75_79,
   #                               r80_over),
-  #                 .after = r80_over) %>% 
+  #                 .after = r80_over) |> 
   #   dplyr::mutate(aging_rate = elderly/total,
   #                 .after = elderly)   
   
-  five_df <- five_year_bar_df %>% 
+  five_df <- five_year_bar_df |> 
     dplyr::select(city_name, treatment_year,
                   five_diff)
   
-  ten_df <- ten_year_bar_df %>% 
+  ten_df <- ten_year_bar_df |> 
     dplyr::select(city_name, treatment_year,
                   ten_diff)
   
   
-  five_ten_table <- dplyr::left_join(five_df, ten_df) %>% 
-    dplyr::mutate(five_diff = round(five_diff, 3)) %>% 
+  five_ten_table <- dplyr::left_join(five_df, ten_df) |> 
+    dplyr::mutate(five_diff = round(five_diff, 3)) |> 
     dplyr::mutate(ten_diff = round(ten_diff, 3))
   
   write.csv(five_ten_table, here::here('04.analyze', 'synthetic_control',
@@ -59,12 +59,12 @@ main <- function(){
             fileEncoding = "CP932", row.names = FALSE)
   
   
-  five_df <- diff_all_data %>% 
-    mutate(after = time_unit - treatment_year + 1) %>% 
+  five_df <- diff_all_data |> 
+    mutate(after = time_unit - treatment_year + 1) |> 
     dplyr::filter(after == 5)
   
-  ten_df <- diff_all_data %>% 
-    mutate(after = time_unit - treatment_year + 1) %>% 
+  ten_df <- diff_all_data |> 
+    mutate(after = time_unit - treatment_year + 1) |> 
     dplyr::filter(after == 10)
   
   df_name_list <- unique(five_df$city_name)
@@ -81,7 +81,7 @@ main <- function(){
   
   fci_df <- change_fci(treatment_name_lists)
   
-  plot_based_data <- dplyr::left_join(all_data_df, fci_df) %>% 
+  plot_based_data <- dplyr::left_join(all_data_df, fci_df) |> 
     dplyr::relocate(region_name, .after = city_name)
   
   main_city_df <- readxl::read_xlsx(here::here('02.raw',
@@ -111,9 +111,9 @@ change_fci <- function(treatment_name_lists){
                                   'data', 'fci_data.csv'),
                        fileEncoding = "CP932")
   
-  fci_average_df <- fci_data %>% 
-    dplyr::ungroup() %>% 
-    dplyr::group_by(city_name, region_name) %>%
+  fci_average_df <- fci_data |> 
+    dplyr::ungroup() |> 
+    dplyr::group_by(city_name, region_name) |>
     dplyr::summarise(fci_mean = mean(FCI, na.rm = TRUE))
     
   fci_city_name <- c("江差町", "上ノ国町", "訓子府町",
@@ -125,12 +125,12 @@ change_fci <- function(treatment_name_lists){
   adjust_df <- data.frame("city_name" = treatment_name_lists,
                           "city_name_fci" = fci_city_name)
   
-  fci_treatment_df <- fci_average_df %>% 
-    dplyr::ungroup() %>% 
-    dplyr::filter(city_name %in% fci_city_name) %>% 
-    dplyr::rename(city_name_fci = city_name) %>% 
-    dplyr::left_join(adjust_df) %>% 
-    dplyr::relocate(city_name, .before = city_name_fci) %>% 
+  fci_treatment_df <- fci_average_df |> 
+    dplyr::ungroup() |> 
+    dplyr::filter(city_name %in% fci_city_name) |> 
+    dplyr::rename(city_name_fci = city_name) |> 
+    dplyr::left_join(adjust_df) |> 
+    dplyr::relocate(city_name, .before = city_name_fci) |> 
     dplyr::select(-city_name_fci)
   
   return(fci_treatment_df)
@@ -149,15 +149,15 @@ add_cross_cov <- function(treatment_data){
   length_df <- data.frame(line_name = line_name,
                           track_length = track_length)
   
-  cov_only_data <- treatment_data %>% 
+  cov_only_data <- treatment_data |> 
     dplyr::select(city_name, city_name, line_name, year, treatment_year, line_name, total,
                   middle, children_household_percent, own_household_percent,
                   train_pop_percent, houseyear_pop_percent)
   
   colnames(treatment_data)
   
-  cov_mean_data <- cov_only_data %>% 
-    group_by(city_name) %>% 
+  cov_mean_data <- cov_only_data |> 
+    group_by(city_name) |> 
     summarise(line_name = line_name,
               own_percent_mean = mean(own_household_percent, na.rm = TRUE),
               total_mean = mean(total, na.rm = TRUE),
@@ -166,7 +166,7 @@ add_cross_cov <- function(treatment_data){
               train_mean = mean(train_pop_percent, na.rm = TRUE),
               treatment_year = treatment_year)
   
-  output_data <- left_join(cov_mean_data, length_df) %>% 
+  output_data <- left_join(cov_mean_data, length_df) |> 
     dplyr::distinct()
   
   return(output_data)

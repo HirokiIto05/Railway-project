@@ -2,7 +2,7 @@ main <- function(){
   
   year_list <- seq(2005, 2019)
   
-  fci_data <- purrr::map(year_list, read_power) %>% 
+  fci_data <- purrr::map(year_list, read_power) |> 
     dplyr::bind_rows()
   
   write.csv(fci_data, 
@@ -25,7 +25,7 @@ read_power <- function(year_n){
                             paste0(year_n,'.xls'))
     based_data <- readxl::read_xls(file_name, 
                                    col_names = FALSE,
-                                   skip = 2) %>% 
+                                   skip = 2) |> 
       dplyr::select(1,2,6)
     
   }else if(year_n <= 2010){
@@ -34,7 +34,7 @@ read_power <- function(year_n){
                             paste0(year_n,'.xls'))
     based_data <- readxl::read_xls(file_name, 
                                    col_names = FALSE,
-                                   skip = 2) %>%
+                                   skip = 2) |>
       dplyr::select(1,2,3)
   
   }
@@ -45,7 +45,7 @@ read_power <- function(year_n){
     
     based_data <- readxl::read_xls(file_name, 
                                    col_names = FALSE,
-                                   skip = 2) %>%
+                                   skip = 2) |>
       dplyr::select(2,3,4)
 
   }else if(year_n <= 2019){
@@ -54,15 +54,15 @@ read_power <- function(year_n){
                             paste0(year_n,'.xlsx'))
     based_data <- readxl::read_xlsx(file_name, 
                                     col_names = FALSE,
-                                    skip = 2) %>%
+                                    skip = 2) |>
       dplyr::select(2,3,4) 
   
   }
   
   colnames(based_data) <- c("region_name", "city_name", "FCI")
   
-  output_data <- based_data %>% 
-    dplyr::mutate(year = year_n, .after = city_name) %>% 
+  output_data <- based_data |> 
+    dplyr::mutate(year = year_n, .after = city_name) |> 
     dplyr::mutate(FCI = as.numeric(FCI))
   
   return(output_data)

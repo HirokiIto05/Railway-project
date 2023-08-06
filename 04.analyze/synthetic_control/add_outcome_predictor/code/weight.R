@@ -1,6 +1,6 @@
 main <- function(){
   
-  treatment_data <- load_csv('complete', 'treatment_data.csv') %>% 
+  treatment_data <- load_csv('complete', 'treatment_data.csv') |> 
     dplyr::filter(treatment_year <= 2015,
                   city_name != "揖斐郡大野町",
                   city_name != "本巣郡北方町",
@@ -9,8 +9,8 @@ main <- function(){
                   city_name != "十和田市"
     )   
   
-  treatment_name_lists <- distinct(treatment_data,city_name) %>% 
-    unlist() %>% 
+  treatment_name_lists <- distinct(treatment_data,city_name) |> 
+    unlist() |> 
     as.character()
   
   
@@ -29,7 +29,7 @@ synth_weight <- function(name_t, treatment_data){
   # synth_data <- readRDS(here::here('04.analyze','synthetic_control', 'figure',
   #                                  'synth_cov', 'density_1000','table', file_name))
   # 
-  treatment_one <- treatment_data %>% 
+  treatment_one <- treatment_data |> 
     dplyr::filter(city_name == name_t)
   
   int_year <- unique(treatment_one$treatment_year)
@@ -38,7 +38,7 @@ synth_weight <- function(name_t, treatment_data){
   
   # title_name <- paste0("Placebo test ","'", city_name_t,"'")
   
-  weight_plot <- synth_data %>%
+  weight_plot <- synth_data |>
     tidysynth::plot_weights() +
     # labs(title = title_name,
     #      y = "population",

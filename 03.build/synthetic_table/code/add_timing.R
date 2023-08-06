@@ -1,12 +1,12 @@
 main <- function(){
   
-  treatment_data <- load_data("master_data","treatment_data.csv") %>% 
+  treatment_data <- load_data("master_data","treatment_data.csv") |> 
     dplyr::mutate(timing = year - treatment_year)
   treatment_synth <- load_data("synthetic_table","all_synth_data.csv")
   
   timing_data <- add_variable(treatment_data, treatment_synth)
   
-  sample_n_df <- purrr::map(num_list, timing_sample, data = test) %>% 
+  sample_n_df <- purrr::map(num_list, timing_sample, data = test) |> 
     tibble()
   
   
@@ -26,24 +26,24 @@ load_data <- function(folder_name, file_name){
 
 add_variable <- function(treatment_data, treatment_synth){
   
-  treatment_year_only <- treatment_data %>% 
-    dplyr::select(city_id, year, treatment_year, timing) %>% 
+  treatment_year_only <- treatment_data |> 
+    dplyr::select(city_id, year, treatment_year, timing) |> 
     dplyr::mutate(city_id = as.character(city_id))
   
-  output_data <- treatment_synth %>% 
+  output_data <- treatment_synth |> 
     dplyr::ungroup()
   
-  output_data <- output_data %>% 
+  output_data <- output_data |> 
     dplyr::mutate(city_id = as.character(city_id))
   
-  output_data <- output_data %>% 
+  output_data <- output_data |> 
     left_join(treatment_year_only, by = c("city_id", "time_unit" = "year"))
   
   
-  output_data <- output_data %>% 
-    dplyr::ungroup() %>% 
-    dplyr::mutate(difference = real_y - synth_y) %>% 
-    dplyr::group_by(timing) %>% 
+  output_data <- output_data |> 
+    dplyr::ungroup() |> 
+    dplyr::mutate(difference = real_y - synth_y) |> 
+    dplyr::group_by(timing) |> 
     dplyr::summarise(mean_diff = mean(difference),
                      mean_real = mean(real_y),
                      mean_synth = mean(synth_y))
@@ -63,14 +63,14 @@ save_table <- function(data){
   
 }
 
-real <- output_data %>% 
-  dplyr::select(timing, mean_real) %>% 
-  dplyr::rename(mean = mean_real) %>% 
+real <- output_data |> 
+  dplyr::select(timing, mean_real) |> 
+  dplyr::rename(mean = mean_real) |> 
   dplyr::mutate(treatment = 1)
 
-synth <- output_data %>% 
-  dplyr::select(timing, mean_synth) %>% 
-  dplyr::rename(mean = mean_synth) %>% 
+synth <- output_data |> 
+  dplyr::select(timing, mean_synth) |> 
+  dplyr::rename(mean = mean_synth) |> 
   dplyr::mutate(treatment = 0)
 
 

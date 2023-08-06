@@ -5,16 +5,16 @@ p_value_data <- read.csv(here::here('04.analyze', 'synthetic_control',
 
 create_bar_plot <- function(year_i, p_value_data){
   
-  year_five_df <- p_value_data %>% 
-    mutate(after = year - treatment_year + 1) %>% 
-    dplyr::filter(after == 5) %>% 
-    dplyr::select(city_name, diff) %>% 
+  year_five_df <- p_value_data |> 
+    mutate(after = year - treatment_year + 1) |> 
+    dplyr::filter(after == 5) |> 
+    dplyr::select(city_name, diff) |> 
     dplyr::rename(diff_five_later = diff)
   
-  year_ten_df <- p_value_data %>% 
-    mutate(after = year - treatment_year + 1) %>% 
-    dplyr::filter(after == 10) %>% 
-    select(city_name, diff) %>% 
+  year_ten_df <- p_value_data |> 
+    mutate(after = year - treatment_year + 1) |> 
+    dplyr::filter(after == 10) |> 
+    select(city_name, diff) |> 
     dplyr::rename(diff_ten_later = diff) 
   
   
@@ -32,9 +32,9 @@ create_bar_plot <- function(year_i, p_value_data){
   
   
   
-  # table_five_ten <- test %>% 
-  #   kbl() %>%
-  #   kable_classic_2(full_width = F) %>% 
+  # table_five_ten <- test |> 
+  #   kbl() |>
+  #   kable_classic_2(full_width = F) |> 
   #   save_kable(file = here::here('04.analyze','synthetic_control',
   #                                'after_2015','kable',
   #                                "Five_year_later_bar.pdf"))

@@ -1,42 +1,50 @@
 main <- function(){
   
-  treatment_data <- load_csv('complete', 'treatment_data.csv') %>% 
-    dplyr::filter(treatment_year <= 2015,
-                  city_name != "揖斐郡大野町",
-                  city_name != "本巣郡北方町",
-                  city_name != "珠洲市",
-                  city_name != "鳳珠郡能登町",
-                  city_name != "十和田市",
-                  city_name != "行方市"
-                  )   
+  # treatment_data <- load_csv('complete', 'treatment_data.csv') |> 
+  df_master <- read.csv("03.build/master/data/master.csv", 
+                             fileEncoding = "CP932")
   
-  treatment_name_lists <- unique(treatment_data$city_name)
+  treatment_name_lists <- df_master |> 
+    dplyr::filter(
+      treatment == 1
+    ) |> 
+    dplyr::distinct(city_name) |> 
+    dplyr::pull()
 
   diff_all_data <- purrr::map(treatment_name_lists, read_plot,
-                              treatment_data) %>% 
+                              treatment_data) |> 
     dplyr::bind_rows()
   
-  # cross_plot_base <- read.csv(here::here('04.analyze',
-  #                                        'synthetic_control',
-  #                                        'add_outcome_predictor',
-  #                                        'cross_plot_base',
-  #                                        'five_ten_data.csv'),
-  #                             fileEncoding = "CP932")
+  year_end <- 2005
+  
+  df_okito <- diff_all_data |> 
+    dplyr::filter(
+      city_name == "常呂郡置戸町",
+      time_unit <=  year_end
+    ) |>
+    dplyr::mutate(
+      pe = diff ^ 2,
+      pe_inverse = diff_inverse ^ 2
+    )
   
   
+  # data_okito <- readRDS(here::here('04.analyze','synthetic_control',
+  #                                 'add_outcome_predictor',
+  #                                 'table', 'except_train',
+  #                                 '常呂郡置戸町.rds'))
   
-  # write.csv(diff_all_data, here::here('04.analyze',
-  #                                     'synthetic_control',
-  #                                     'add_outcome_predictor',
-  #                                     'diff_ten_data.csv'),
-  #           row.names = FALSE, fileEncoding = "CP932")
+  
+  mean(df_okito$pe)
+  
+  data_okito |> 
+    grab_signficance()
+  
+
   
   
 }
 
-
-
-read_plot <- function(city_name_t, treatment_data){
+read_plot <- function(city_name_t, df_master){
   
   print(city_name_t)
   
@@ -44,20 +52,22 @@ read_plot <- function(city_name_t, treatment_data){
   
   base_plot <- readRDS(here::here('04.analyze','synthetic_control',
                                   'add_outcome_predictor',
-                                  'table', file_name))
+                                  'table', 'except_train',
+                                  file_name))
   
   title_id <- as.character(city_name_t)
   
-  treatment_one <- treatment_data %>% 
+  treatment_one <- df_master |> 
     dplyr::filter(city_name == city_name_t)
   
-  int_year = unique(treatment_one$treatment_year)
+  int_year = unique(treatment_one$year_end)
   
-  bar_base_data <- base_plot %>% 
-    grab_synthetic_control() %>% 
-    dplyr::mutate(diff = real_y - synth_y) %>% 
+  bar_base_data <- base_plot |> 
+    grab_synthetic_control() |> 
+    dplyr::mutate(diff = real_y - synth_y) |> 
+    dplyr::mutate(diff_inverse = synth_y - real_y) |> 
     dplyr::mutate(treatment_year = int_year,
-                  .after = time_unit) %>% 
+                  .after = time_unit) |> 
     dplyr::mutate(city_name = city_name_t)
   
   return(bar_base_data)
@@ -66,9 +76,9 @@ read_plot <- function(city_name_t, treatment_data){
 
 create_bar_plot <- function(year_i, diff_all_data){
   
-  five_year_bar_df <- diff_all_data %>%
-    mutate(after = time_unit - treatment_year + 1) %>%
-    dplyr::filter(after == 5) %>% 
+  five_year_bar_df <- diff_all_data |>
+    mutate(after = time_unit - treatment_year + 1) |>
+    dplyr::filter(after == 5) |> 
     dplyr::rename(five_diff = diff)
 
   # colnames(cross_plot_base)
@@ -104,12 +114,12 @@ create_bar_plot <- function(year_i, diff_all_data){
   ggsave(output_plot_five, filename = file_name_five, width = 4, height = 2.7)
   
   
-  ten_year_bar_df <- diff_all_data %>%
-    mutate(after = time_unit - treatment_year + 1) %>%
-    dplyr::filter(after == 10) %>% 
+  ten_year_bar_df <- diff_all_data |>
+    mutate(after = time_unit - treatment_year + 1) |>
+    dplyr::filter(after == 10) |> 
     dplyr::rename(ten_diff = diff)
   
-  diff_all_data_ten <- diff_all_data %>% 
+  diff_all_data_ten <- diff_all_data |> 
     drop_na()
   
   mean_ten <- round(mean(ten_year_bar_df$ten_diff), 4)
@@ -156,10 +166,10 @@ ggsave(output_plot_15,
 
 theme_gray(base_family = "HiraKakuPro-W3")
 
-five_ten_df <- cross_plot_base %>% 
+five_ten_df <- cross_plot_base |> 
   dplyr::select(city_name, five_diff, ten_diff)
 
-five_ten_df <- five_ten_df %>% 
+five_ten_df <- five_ten_df |> 
   dplyr::mutate(five_diff = round(five_diff, 4),
                 ten_diff = round(ten_diff, 4))
 

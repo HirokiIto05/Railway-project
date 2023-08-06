@@ -1,4 +1,4 @@
-treatment_variable <- treatment_data %>% 
+treatment_variable <- treatment_data |> 
   dplyr::select(city_id, city_name, region_name,
                 year, treatment_year, total,
                 line_name, middle, dummy,
@@ -16,7 +16,7 @@ line_name_list
 
 add_cross_cov <- function(treatment_data, add_length_data){
   
-  treatment_cov_df <- treatment_data %>% 
+  treatment_cov_df <- treatment_data |> 
     dplyr::select(city_name, city_name, year, treatment_year, line_name, total,
                   middle, children_household_percent, own_household_percent,
                   train_pop_percent, houseyear_pop_percent)
@@ -24,20 +24,20 @@ add_cross_cov <- function(treatment_data, add_length_data){
   
   colnames(treatment_data)
   
-  cov_mean_data <- treatment_cov_df %>% 
-    group_by(city_name) %>% 
+  cov_mean_data <- treatment_cov_df |> 
+    group_by(city_name) |> 
     summarise(own_percent_mean = mean(own_household_percent, na.rm = TRUE),
               total_mean = mean(total, na.rm = TRUE),
               middle_mean = mean(middle, na.rm = TRUE),
               children_mean = mean(children_household_percent, na.rm = TRUE),
               train_mean = mean(train_pop_percent, na.rm = TRUE),
-              treatment_year = treatment_year) %>% 
+              treatment_year = treatment_year) |> 
     dplyr::distinct()
   
   
   
   
-  # output_data <- left_join(add_length_data, cov_mean_data) %>% 
+  # output_data <- left_join(add_length_data, cov_mean_data) |> 
   #   dplyr::distinct()
   
   return(output_data)
@@ -66,9 +66,9 @@ treatment_variable <- dplyr::left_join(treatment_variable,
                                        length_df)
 
 
-treatment_df <- treatment_data %>% 
-  dplyr::select(city_name, line_name) %>% 
-  dplyr::left_join(length_df) %>% 
+treatment_df <- treatment_data |> 
+  dplyr::select(city_name, line_name) |> 
+  dplyr::left_join(length_df) |> 
   dplyr::distinct()
 
 

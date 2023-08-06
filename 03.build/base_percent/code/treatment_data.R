@@ -1,12 +1,12 @@
 main <- function(){
   
-  pop_data <- load_pop() %>% 
+  pop_data <- load_pop() |> 
     dplyr::mutate(city_id = as.character(city_id))
   
-  main_data <- load_main() %>% 
-    dplyr::filter(dummy == 1) %>% 
-    dplyr::distinct(adjust_id, .keep_all = TRUE) %>% 
-    dplyr::select(-adjust_id, -city_name, -new_name) %>% 
+  main_data <- load_main() |> 
+    dplyr::filter(dummy == 1) |> 
+    dplyr::distinct(adjust_id, .keep_all = TRUE) |> 
+    dplyr::select(-adjust_id, -city_name, -new_name) |> 
     dplyr::mutate(city_id = as.character(city_id))
   
   treatment_pop <- add_pop(main_data, pop_data)
@@ -18,7 +18,7 @@ main <- function(){
 }
 
 
-check_na <- pop_data %>% 
+check_na <- pop_data |> 
   dplyr::distinct(city_id, .keep_all = TRUE)
 
 
@@ -44,9 +44,9 @@ load_pop <- function(){
 
 add_pop <- function(main_data, pop_data){
   
-  treatment_id <- main_data %>% 
-    dplyr::distinct(city_id) %>% 
-    unlist() %>% 
+  treatment_id <- main_data |> 
+    dplyr::distinct(city_id) |> 
+    unlist() |> 
     as.character() 
   
   test_data <- dplyr::filter(pop_data, city_id %in% treatment_id)
@@ -60,7 +60,7 @@ add_percent <- function(data){
   
   city_id_lists <- unique(data$city_id)
   
-  output_data <- lapply(city_id_lists, calculate_percent, data) %>% 
+  output_data <- lapply(city_id_lists, calculate_percent, data) |> 
     dplyr::bind_rows()
   
   return(output_data)
@@ -69,14 +69,14 @@ add_percent <- function(data){
 
 calculate_percent <- function(id,data){
   
-  id_n <- data %>% 
+  id_n <- data |> 
     dplyr::filter(city_id == id,
-                  year == 1995) %>% 
-    dplyr::select(working) %>% 
+                  year == 1995) |> 
+    dplyr::select(working) |> 
     as.numeric()
     
-  new_data <- data %>% 
-    dplyr::filter(city_id == id) %>% 
+  new_data <- data |> 
+    dplyr::filter(city_id == id) |> 
     dplyr::mutate(percent = working/id_n)
   
   return(new_data)

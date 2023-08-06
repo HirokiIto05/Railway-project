@@ -5,33 +5,25 @@ main <- function(){
   
   year_list <- seq(1995,2019)
   
-  int_pop_data <- lapply(year_list, aggregate_pop, short_lists, long_lists) %>% 
+  int_pop_data <- lapply(year_list, aggregate_pop, short_lists, long_lists) |> 
     dplyr::bind_rows() 
   
   age_data <- change_id(int_pop_data)
   
   city_name_list <- age_data$city_name
   
-  hh <- "市町村"
-  
-  tt <- "檜山郡江差町*"
-  
-  str_sub(tt, start = 1, end = nchar(tt)-1)
-  
-  str_detect(tt, pattern = '*')
-  
-  small_ss <- dplyr::filter(city_name_df, str_detect(city_name, "\\*")) %>% 
+  small_ss <- dplyr::filter(city_name_df, str_detect(city_name, "\\*")) |> 
     dplyr::distinct()
   
   small_test <- str_detect(city_name_df, pattern = "\\*")
   
-  new_name_df <- purrr::map(city_name_list, replace_str) %>% 
+  new_name_df <- purrr::map(city_name_list, replace_str) |> 
     dplyr::bind_rows()
   
   apply(city_name_df, 1, replace_str)
   
   new_city_name_list <- stringr::str_replace_all(city_name_list, 
-                                                 pattern = "*",
+                                                 pattern = fixed("*"),
                                                  replacement = "")
   
   save_table(add_data)
@@ -73,13 +65,13 @@ aggregate_pop <- function(base_year, short_lists, long_lists){
     
     colnames(new_data) <- short_lists
     
-    num_only <- new_data %>% 
+    num_only <- new_data |> 
       dplyr::select(-prefecture, -city_name, -gender)
     
-    cha_only <- new_data %>% 
+    cha_only <- new_data |> 
       dplyr::select(prefecture, city_name, gender)
     
-    num_only <- num_only %>% 
+    num_only <- num_only |> 
       apply(2, as.numeric) 
     
     new_data <- bind_cols(cha_only, num_only)
@@ -91,26 +83,26 @@ aggregate_pop <- function(base_year, short_lists, long_lists){
     
     colnames(new_data) <- long_lists
     
-    num_only <- new_data %>% 
+    num_only <- new_data |> 
       dplyr::select(-prefecture, -city_name, -gender)
     
-    cha_only <- new_data %>% 
+    cha_only <- new_data |> 
       dplyr::select(prefecture, city_name, gender)
     
-    num_only <- num_only %>% 
+    num_only <- num_only |> 
       apply(2, as.numeric) 
     
     new_data <- bind_cols(cha_only, num_only)
     
-    new_data <- new_data %>% 
-      dplyr::mutate(r80_over = dplyr::select(.,c(r80_84,r85_89,r90_94,r95_99,r100_over)) %>% 
-                      rowSums(na.rm = TRUE)) %>% 
+    new_data <- new_data |> 
+      dplyr::mutate(r80_over = dplyr::select(.,c(r80_84,r85_89,r90_94,r95_99,r100_over)) |> 
+                      rowSums(na.rm = TRUE)) |> 
       dplyr::select(-r80_84, -r85_89, -r90_94, -r95_99, -r100_over)
     
   }
   
-  new_data <- new_data %>% 
-    dplyr::mutate(year = base_year) %>% 
+  new_data <- new_data |> 
+    dplyr::mutate(year = base_year) |> 
     dplyr::relocate(year, .after = city_id)
   
   return(new_data)
@@ -131,12 +123,12 @@ five_func <- function(id){
 
 change_id <- function(int_pop_data){
   
-  new_id <- int_pop_data %>% 
+  new_id <- int_pop_data |> 
     dplyr::select(city_id)
   
   new_id <- apply(new_id, 1, five_func)
   
-  output_data <- int_pop_data %>% 
+  output_data <- int_pop_data |> 
     dplyr::mutate(city_id = new_id)
   
   return(output_data)
@@ -166,16 +158,9 @@ save_table <- function(data){
   
 }
 
-install.packages("writexl")
 library(writexl)
-
-
-
-
 library(dplyr)
 library(stringr)
 library(tidyr)
 library(ggplot2)
 library(rlang)
-
-install.packages("openxlsx")

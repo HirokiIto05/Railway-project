@@ -10,9 +10,9 @@ base_plot <- readRDS(here::here('04.analyze','synthetic_control',
 
 title_id <- as.character(city_name_t)
 
-diff_plot_df <- base_plot %>% 
-  tidysynth::grab_synthetic_control() %>%
-  dplyr::mutate(diff = real_y - synth_y) %>% 
+diff_plot_df <- base_plot |> 
+  tidysynth::grab_synthetic_control() |>
+  dplyr::mutate(diff = real_y - synth_y) |> 
   dplyr::mutate(city_name = city_name_t)
 
 diff_plot <- ggplot(diff_plot_df) +

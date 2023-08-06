@@ -5,7 +5,7 @@ main <- function(){
   
   all_data <- create_all(treatment_data, control_data)
   
-  treat_city_id <-unlist(distinct(treatment_data, city_id)) %>% 
+  treat_city_id <-unlist(distinct(treatment_data, city_id)) |> 
     as.character()
   
   timing_data <- create_lead_lag(percent_treatment, treat_city_id)
@@ -14,7 +14,7 @@ main <- function(){
   
 }
 
-mean_timing <- group_by(timing_data, timing) %>% 
+mean_timing <- group_by(timing_data, timing) |> 
   summarise(outcome = mean(percent))
 
 
@@ -44,9 +44,9 @@ load_data <- function(file_name){
 
 create_all <- function(treatment_data, control_data){
   
-  all_data <- bind_rows(treatment_data, control_data) %>% 
+  all_data <- bind_rows(treatment_data, control_data) |> 
     dplyr::mutate(treatment = ifelse((treatment_year != 0), 1,0),
-                  .after = city_name) %>% 
+                  .after = city_name) |> 
     ungroup()
   
   return(all_data)
@@ -60,10 +60,10 @@ create_lead_lag <- function(treatment_data, treat_city_id){
   
   for(i in treat_city_id){
     
-    new_data <- treatment_data %>%
+    new_data <- treatment_data |>
       dplyr::filter(city_id == i)
     
-    c_num <- distinct(new_data, treatment_year) %>%
+    c_num <- distinct(new_data, treatment_year) |>
       as.numeric()
     
     lead <- c_num - 1995
@@ -71,7 +71,7 @@ create_lead_lag <- function(treatment_data, treat_city_id){
     
     timing_list <- seq(-lead, lag, by = 1) 
     
-    new_data <- new_data %>% 
+    new_data <- new_data |> 
       dplyr::mutate(timing = timing_list, .keep = c("unused")) 
     
     emp_data <- rbind(emp_data, new_data)

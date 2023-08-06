@@ -37,9 +37,9 @@ read_plot <- function(city_name_t, treatment_data){
   
   title_id <- as.character(city_name_t)
   
-  tt <- base_plot %>% grab_synthetic_control() 
+  tt <- base_plot |> grab_synthetic_control() 
   
-  int_year <- treatment_data %>% 
+  int_year <- treatment_data |> 
     dplyr::filter(city_name == city_name_t)
   
   int_year <- unique(int_year$treatment_year)

@@ -14,8 +14,8 @@ main <- function(){
 }
 
 
-tt <- treatment_data %>% 
-  dplyr::filter(treatment_year <= 2015) %>% 
+tt <- treatment_data |> 
+  dplyr::filter(treatment_year <= 2015) |> 
   dplyr::filter(city_id != 21403,
                 city_id != 21421)  
 
@@ -47,34 +47,34 @@ input_data <- master_data
 
 add_variable <- function(input_data){
   
-  output_data <- input_data %>% 
-    dplyr::group_by(city_id, year) %>% 
+  output_data <- input_data |> 
+    dplyr::group_by(city_id, year) |> 
     dplyr::mutate(over_65 = sum(r65_69,
                                 r70_74,r75_79,
-                                r80_over)) %>% 
-    dplyr::mutate(elderly_rate = (over_65/total)) %>% 
+                                r80_over)) |> 
+    dplyr::mutate(elderly_rate = (over_65/total)) |> 
     dplyr::ungroup()
   
   return(output_data)
   
 }
 
-tt <- treatment_data %>% 
+tt <- treatment_data |> 
   distinct(city_id)
 
-treatment_five <- treatment_data %>% 
+treatment_five <- treatment_data |> 
   dplyr::filter(treatment_year <= 2015)
 
-treatment_five %>% 
+treatment_five |> 
   distinct(city_id)
 
 create_table <- function(master_data){
   
   
-  master_base_table <- master_data %>% 
+  master_base_table <- master_data |> 
     dplyr::group_by(dummy)
   
-  master_table <- master_base_table %>% 
+  master_table <- master_base_table |> 
     dplyr::summarise(
       N = n_distinct(city_id),
       max_pop = max(total, na.rm = TRUE),
@@ -92,21 +92,21 @@ create_table <- function(master_data){
   
   colnames(t_master_table) <- c("control", "treatment")
   
-  t_master_table <- t_master_table %>% 
+  t_master_table <- t_master_table |> 
     dplyr::relocate(treatment, .before = control) 
     
   
   
   
-  tidy_table <- master_table %>% 
-    kableExtra::kbl() %>%
+  tidy_table <- master_table |> 
+    kableExtra::kbl() |>
     kableExtra::kable_classic_2(full_width = F)
   
   return(tidy_table)
   
   file_name <- paste0(here::here('04.analyze', 'statistic_table', 'table', 'statistic_table.pdf'))
   
-  stat_table %>%
+  stat_table |>
     kableExtra::save_kable(file = file_name, self_contained = T)
 
   

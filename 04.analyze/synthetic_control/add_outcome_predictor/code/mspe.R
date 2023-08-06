@@ -1,6 +1,6 @@
 main <- function(){
   
-  treatment_data <- load_csv('complete', 'treatment_data.csv') %>% 
+  treatment_data <- load_csv('complete', 'treatment_data.csv') |> 
     dplyr::filter(treatment_year <= 2015,
                   city_name != "揖斐郡大野町",
                   city_name != "本巣郡北方町",
@@ -27,7 +27,7 @@ create_mspe_plot <- function(city_name_t, folder_name){
                                folder_name,'table',
                                file_name))
   
-  p <- syn_df %>% plot_mspe_ratio()
+  p <- syn_df |> plot_mspe_ratio()
   
   p_data <- p$data
   

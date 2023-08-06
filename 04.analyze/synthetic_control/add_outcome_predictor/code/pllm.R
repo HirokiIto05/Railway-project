@@ -7,9 +7,9 @@ city_id_list <- unique(master_data$city_id)
 
 colnames(master_data)
 
-based_data <- master_data %>% 
-  dplyr::ungroup() %>% 
-  dplyr::group_by(city_id) %>% 
+based_data <- master_data |> 
+  dplyr::ungroup() |> 
+  dplyr::group_by(city_id) |> 
   dplyr::select(city_id, cut_off,
                 city_name, region_name,
                 year, total,
@@ -22,7 +22,7 @@ based_data <- master_data %>%
                 train_pop_percent)  
 
 plm_based <- purrr::map(city_id_list, add_relative, 
-                              based_data) %>% 
+                              based_data) |> 
   dplyr::bind_rows()
 
 
@@ -30,16 +30,16 @@ id_n <- 1549
   
 add_relative <- function(id_n, based_data){
   
-  interim_data <- based_data %>% 
+  interim_data <- based_data |> 
     dplyr::filter(city_id == id_n)
   
-  num_data <- interim_data %>% 
-    dplyr::filter(year == 1995) %>% 
+  num_data <- interim_data |> 
+    dplyr::filter(year == 1995) |> 
     dplyr::distinct(middle) 
   
   base_num <- unique(num_data$middle)
   
-  output_data <- interim_data %>% 
+  output_data <- interim_data |> 
     dplyr::mutate(middle_relative = middle/base_num,
                   .after = middle)
   
@@ -53,7 +53,7 @@ print(colnames(plm_based))
 install.packages("did")
 library(did)
 
-plm_based <- plm_based %>%
+plm_based <- plm_based |>
   dplyr::relocate(did, .after = city_id)
 
 

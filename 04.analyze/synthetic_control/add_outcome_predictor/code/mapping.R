@@ -24,8 +24,8 @@ colnames(kokudo_df)
 
 test_border <- st_read("/Users/ito_hiroki/01.Research/Railway-project/02.raw/N03-140401_GML/N03-14_140401.shp") 
 
-test_border_geo <- test_border %>% 
-  dplyr::group_by(N03_001) %>% 
+test_border_geo <- test_border |> 
+  dplyr::group_by(N03_001) |> 
   summarise()
 
 # jpn <- st_read("jpn_pref.shp", options = "ENCODING=UTF-8")
@@ -52,23 +52,24 @@ kokudo_df <- st_simplify(kokudo_df, dTolerance = 0.1)
 japan_geo <- read_sf(here::here('02.raw',
                                 'shapefile',
                                 'japan_ver84'))
-
 colnames(japan_geo)
 
 
-dummy_df <- master_data %>%
-  dplyr::select(city_id, dummy) %>% 
+dummy_df <- master_df |>
+  dplyr::select(city_id, dummy) |> 
   distinct()
   
+master_df <- read.csv("03.build/complete/data/treatment_data.csv",
+                      fileEncoding = "cp932")
 
-japan_geo_2 <- japan_geo %>% 
+japan_geo_2 <- japan_geo |> 
   dplyr::filter(KEN != "沖縄県",
-                SIKUCHOSON != "小笠原村") %>% 
-  dplyr::rename(city_id = JCODE) %>% 
+                SIKUCHOSON != "小笠原村") |> 
+  dplyr::rename(city_id = JCODE) |> 
   dplyr::mutate(city_id = as.numeric(city_id))  
 
-japan_geo3 <- dplyr::left_join(japan_geo_2, dummy_df) %>% 
-  dplyr::mutate_at(c('dummy'), ~replace(., is.na(.), "NA")) %>%
+japan_geo3 <- dplyr::left_join(japan_geo_2, dummy_df) |> 
+  dplyr::mutate_at(c('dummy'), ~replace(., is.na(.), "NA")) |>
   dplyr::mutate(dummy = as.character(dummy)) 
   
 install.packages("maps")
@@ -79,13 +80,13 @@ world_map <- map_data("world")
   
 colnames(world_map)
 
-jpn_map <- world_map %>% 
+jpn_map <- world_map |> 
   dplyr::filter(region == "Japan") 
 
   # ggplot(aes(x = long, y = lat, group = group)) +
   # geom_polygon(fill = "lightgray", colour = "black", size = 0.1)
 
-
+class(japan_geo3)
 
 
 tm_test <-  tm_shape(japan_geo3) +
@@ -96,8 +97,7 @@ tm_test <-  tm_shape(japan_geo3) +
     style = "order",
     title = "City Type",
     # title = "density",
-    breaks = c("0", "1", "NA"),
-    palette = MyPalette) 
+    breaks = c("0", "1", "NA")) 
   
 
 tm_test
@@ -113,7 +113,10 @@ tmap_save(tm_test, filename = here::here('04.analyze','synthetic_control',
 #                            'mapping', 'japan_map.png'))
 
 
-sf::st_is_valid(japangeo)
+sf::st_is_valid(japan_geo3)
+sf::st_is_valid()
+
+sf::st_collection_extract(japan_geo3, type = "POLYGON")
 
 
 here::here('02.raw','shape_world','data')
@@ -121,17 +124,17 @@ here::here('02.raw','shape_world','data')
 
 test_jp <- read_sf(here::here('02.raw',
                               'shape_world',
-                              'data')) %>% 
-  dplyr::filter(sov_a3 == "JPN") %>% 
-  dplyr::select(name,geometry) %>% 
-  dplyr::rename(prefecture = name) %>% 
-  dplyr::mutate(dummy = "NA") %>% 
+                              'data')) |> 
+  dplyr::filter(sov_a3 == "JPN") |> 
+  dplyr::select(name,geometry) |> 
+  dplyr::rename(prefecture = name) |> 
+  dplyr::mutate(dummy = "NA") |> 
   dplyr::filter(prefecture != "Okinawa")
 
-japangeo_df <- japan_geo3 %>% 
-  dplyr::filter(dummy %in% c("0","1")) %>% 
-  dplyr::select(KEN, geometry, dummy) %>% 
-  dplyr::rename(prefecture = KEN) %>% 
+japangeo_df <- japan_geo3 |> 
+  dplyr::filter(dummy %in% c("0","1")) |> 
+  dplyr::select(KEN, geometry, dummy) |> 
+  dplyr::rename(prefecture = KEN) |> 
   dplyr::mutate(dummy = ifelse((dummy == "1"),"Treatment","Control"))
 
 
