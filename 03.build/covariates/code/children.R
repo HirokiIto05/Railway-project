@@ -9,6 +9,8 @@ main <- function(){
   
 }
 
+year_n = 2015
+
 
 read_child_csv <- function(year_n){
   

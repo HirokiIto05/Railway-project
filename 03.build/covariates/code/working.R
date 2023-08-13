@@ -5,11 +5,16 @@ main <- function(){
   all_working_data <- purrr::map(year_list, read_working_csv) |> 
     dplyr::bind_rows()
   
-  all_working_data <- all_working_data |> 
-    dplyr::mutate(workforce_pop = as.numeric(sub(",", "", workforce_pop)),
-                  working_pop = as.numeric(sub(",", "", working_pop)),
-                  student_pop = as.numeric(sub(",", "", student_pop))
-    )
+  all_working_data <- all_working_data %>%
+    dplyr::mutate(
+      dplyr::across(c(workforce_pop, working_pop, student_pop), 
+                    ~stringr::str_replace_all(., ",", ""))
+      )
+      
+    # dplyr::mutate(workforce_pop = as.numeric(sub(",", "", workforce_pop)),
+    #               working_pop = as.numeric(sub(",", "", working_pop)),
+    #               student_pop = as.numeric(sub(",", "", student_pop))
+    # )
   
   save_df_csv(all_working_data, "covariates", "working")
   

@@ -1,18 +1,29 @@
 main <- function(){
   
   all_housetype_data <- read_df_csv("covariates", "housetype")
+  
+  df_id_name <- readxl::read_excel("02.raw/municipalities_code/df_id_name.xlsx")
 
   #国勢調査以降に合併した市町村については、データ処理の観点から除外している。
   adjust_df <- adjust_data() |> 
     dplyr::filter(id_muni2020 != 4216,
                   id_muni2020 != 40231) #2015年以降合併市町村
   
-  current_cityid_list <- city_id_list20(adjust_df)
+  current_cityid_list <- city_id_list(adjust_df)
   
   fin_data <- purrr::map(current_cityid_list, adjust_city_id, all_housetype_data, adjust_df) |> 
     bind_rows()
   
-  save_df_csv(fin_data, "city_adjust", "housetype")
+  df_housetype <- fin_data |> 
+    dplyr::left_join(df_id_name) |> 
+    dplyr::select(
+      city_id,
+      city_name,
+      prefecture_name,
+      dplyr::everything()
+    )
+
+  save_df_csv(df_housetype, "city_adjust", "housetype")
   
 }
 
@@ -26,7 +37,7 @@ adjust_data <- function(){
 }
 
 
-city_id_list20 <- function(data){
+city_id_list <- function(data){
   
   output_data <- data |> 
     dplyr::select(id_muni2020) |> 
@@ -40,58 +51,34 @@ city_id_list20 <- function(data){
 
 
 adjust_city_id <- function(id_n, all_housetype_data, adjust_df){
+
   print(id_n)
   
-  new_data <- adjust_df |> 
-    dplyr::filter(id_muni2020 == id_n)
+  list_id <- adjust_df |> 
+    dplyr::filter(id_muni2020 == id_n) |> 
+    dplyr::select(seq(2,9)) |> 
+    unlist() |> 
+    unique() |> 
+    na.omit()
   
-  new_data <- lapply(new_data, long) |> 
-    bind_rows() |> 
-    t() |> 
-    as.data.frame()
+  df_id_n <- all_housetype_data |> 
+    dplyr::filter(city_id %in% list_id) |> 
+    dplyr::mutate(
+      year = as.character(year),
+      city_id = as.character(city_id)
+    )
   
-  colnames(new_data) <- "city_id"
-  
-  new_data <- na.omit(new_data)
-  
-  each_id <- unique(new_data$city_id) 
-  
-  pop_id_n <- all_housetype_data |> 
-    dplyr::filter(city_id %in% each_id) |> 
-    group_by(year)
-  
-  city_data <- all_housetype_data |>
-    dplyr::filter(year == 2015,
-                  city_id == id_n) |> 
-    select(city_id, city_name)
-  
-  city_id_n = city_data[,1]
-  city_name_n = city_data[,2]
-  
-  output_data <- dplyr::summarise(pop_id_n,
-                           own_household = sum(own_household),
-                           own_pop = sum(own_pop),
-                           rent_household = sum(rent_household),
-                           rent_pop = sum(rent_pop),
-  ) |> 
-    dplyr::mutate(city_id = city_id_n,
-                  city_name = city_name_n,
-                  .before = year)
-  
-  
+  output_data <- df_id_n |> 
+    dplyr::reframe(
+      dplyr::across(where(is.numeric), sum),
+      .by = year) |> 
+    dplyr::mutate(
+      city_id = id_n)
+    
   
   return(output_data)
   
 }
 
-
-long <- function(data){
-  
-  output_data <- data |> 
-    t()
-  
-  return(output_data)
-}
-
-
+library(data.table)
 
