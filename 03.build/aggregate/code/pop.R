@@ -4,7 +4,7 @@ main <- function(){
   
   df_city_id <- read_df_city_id()
   
-  year_list <- seq(1995, 2022)
+  year_list <- seq(1996, 2020)
   non_numeric_variables <- c("prefecture_name", "city_name")
   
   df_pop <- purrr::map(year_list,

@@ -1,15 +1,35 @@
 main <- function() {
   
   df_disaster <- read_disaster_df()
-  df_muni <- read_muni_id()
+  df_muni <- read_muni_id() 
   
-  joint_disaster <- left_join(df_muni, df_disaster, by = "city_name") |> 
+  joint_disaster |>
+    distinct(city_id) |>
+    nrow()
+  
+  joint_disaster <- df_muni |> 
+    left_join(df_disaster, by = "city_name") |> 
     dplyr::mutate(city_id = as.numeric(city_id)) |> 
-    dplyr::mutate(city_id = str_sub(city_id, start = 1, end = -2))
+    dplyr::mutate(city_id = str_sub(city_id, start = 1, end = -2)) |> 
+    dplyr::filter(
+      !(where == 'kumomoto' & city_name == "美里町"),
+      city_id != 11381, # 埼玉県 美里町
+      city_id != 12421, # 千葉県 一宮町
+      city_id != 43348 # 熊本県 美里町
+    ) 
   
-
+  df_alternates <- tribble(
+    ~"city_id", ~"prefecture_name", ~"city_name", ~"victims", ~"destroyed_all", ~"destroyed_half", ~"where",
+    "11381", "埼玉県","美里町", NA, NA, NA, NA,
+    "12421", "千葉県", "一宮町", NA, NA, NA, NA,
+    "43348", "熊本県", "美里町", NA, NA, NA, NA
+  )
+  
   joint_disaster <- joint_disaster |> 
-    dplyr::select(-where)
+    dplyr::bind_rows(df_alternates)
+
+  # joint_disaster <- joint_disaster |> 
+    # dplyr::select(-where)
   
   save_df_csv(joint_disaster, "disaster", "master_disaster")
   
@@ -21,7 +41,7 @@ read_disaster_df <- function() {
   df_higashi <- read_df_xlsx("disaster", "higashi") |> 
     dplyr::mutate(
       where = "higashi"
-    ) |>  
+    ) |> 
     list()
   df_hanshin <- read_df_xlsx("disaster", "hanshin") |> 
     dplyr::mutate(
@@ -69,7 +89,10 @@ read_disaster_df <- function() {
                            "destroyed_half" = c(9999, 9999))
   
   df_output <- df_disaster |> 
-    dplyr::bind_rows(df_merged_city)
+    dplyr::bind_rows(df_merged_city) |> 
+    dplyr::select(
+      -prefecture_name
+    )
 
   return(df_output)
   
@@ -84,7 +107,7 @@ read_muni_id <- function() {
   colnames(muni_id) <- c("city_id", "prefecture_name", "city_name")
   
   muni_id <- muni_id |> 
-    tidyr::drop_na(city_name)
+    tidyr::drop_na(city_name) 
   
   return(muni_id)
   

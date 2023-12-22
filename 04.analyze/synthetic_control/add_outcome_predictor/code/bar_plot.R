@@ -1,7 +1,7 @@
 main <- function(){
   
   # treatment_data <- load_csv('complete', 'treatment_data.csv') |> 
-  df_master <- read.csv("03.build/master/data/master.csv", 
+  df_master <- read.csv("03.build/master/data/master_2.csv", 
                              fileEncoding = "CP932")
   
   treatment_name_lists <- df_master |> 
@@ -10,12 +10,20 @@ main <- function(){
     ) |> 
     dplyr::distinct(city_name) |> 
     dplyr::pull()
+  
+  list_data <- list.files("/Users/ito_hiroki/01.Research/Railway-project/04.analyze/synthetic_control/new_table/new_table/table")
 
-  diff_all_data <- purrr::map(treatment_name_lists, read_plot,
-                              treatment_data) |> 
+  diff_all_data <- purrr::map(list_data, read_plot,
+                              df_master) |> 
     dplyr::bind_rows()
   
-  year_end <- 2005
+  
+  df_diff <- diff_all_data |> 
+    dplyr::filter(
+      city_name != "上北郡六戸町"
+    )
+  
+  # year_end <- 2005
   
   df_okito <- diff_all_data |> 
     dplyr::filter(
@@ -44,16 +52,27 @@ main <- function(){
   
 }
 
-read_plot <- function(city_name_t, df_master){
+read_plot <- function(file_path, df_master){
   
-  print(city_name_t)
+  # print(city_name_t)
+  # 
+  # file_name <- paste0(city_name_t, ".rds")
+  # 
+  # base_plot <- readRDS(here::here('04.analyze','synthetic_control',
+  #                                 'add_outcome_predictor',
+  #                                 'table', 'except_train',
+  #                                 file_name))
   
-  file_name <- paste0(city_name_t, ".rds")
+  print(file_path)
   
-  base_plot <- readRDS(here::here('04.analyze','synthetic_control',
-                                  'add_outcome_predictor',
-                                  'table', 'except_train',
-                                  file_name))
+  city_name_t <- stringr::str_sub(file_path, start = 1, end = -5)
+  
+  # file_name <- paste0(city_name_t, ".rds")
+  # 
+  # base_plot <- readRDS(here::here('04.analyze','synthetic_control',
+  #                                 'add_outcome_predictor','table', file_name))
+  
+  base_plot <- readRDS(paste0("04.analyze/synthetic_control/new_table/new_table/table/", file_path))
   
   title_id <- as.character(city_name_t)
   
@@ -64,9 +83,9 @@ read_plot <- function(city_name_t, df_master){
   
   bar_base_data <- base_plot |> 
     grab_synthetic_control() |> 
-    dplyr::mutate(diff = real_y - synth_y) |> 
-    dplyr::mutate(diff_inverse = synth_y - real_y) |> 
-    dplyr::mutate(treatment_year = int_year,
+    dplyr::mutate(diff = real_y - synth_y,
+                  diff_inverse = synth_y - real_y) |> 
+    dplyr::mutate(year_end = int_year,
                   .after = time_unit) |> 
     dplyr::mutate(city_name = city_name_t)
   
@@ -74,10 +93,12 @@ read_plot <- function(city_name_t, df_master){
   
 }
 
+
+
 create_bar_plot <- function(year_i, diff_all_data){
   
   five_year_bar_df <- diff_all_data |>
-    mutate(after = time_unit - treatment_year + 1) |>
+    mutate(after = time_unit - year_end + 1) |>
     dplyr::filter(after == 5) |> 
     dplyr::rename(five_diff = diff)
 
@@ -101,9 +122,14 @@ create_bar_plot <- function(year_i, diff_all_data){
           plot.title = element_text(size = 11),
           axis.text.x = element_text(size = 10),
           axis.text.y = element_text(size = 9)) +
-    ylim(c(-0.1, 0.1)) +
+    # ylim(c(-0.1, 0.1)) +
     annotate("text", x = 16, y = 0, label = "平均", vjust = -0.5,
-             family="HiraKakuPro-W3") 
+             family="HiraKakuPro-W3") +
+    scale_y_continuous(
+      limits = c(-4, 10),
+      breaks = c(seq(-4, 4, 2))
+    )
+    
     
   output_plot_five
   
@@ -114,8 +140,8 @@ create_bar_plot <- function(year_i, diff_all_data){
   ggsave(output_plot_five, filename = file_name_five, width = 4, height = 2.7)
   
   
-  ten_year_bar_df <- diff_all_data |>
-    mutate(after = time_unit - treatment_year + 1) |>
+  ten_year_bar_df <- df_diff |>
+    mutate(after = time_unit - year_end + 1) |>
     dplyr::filter(after == 10) |> 
     dplyr::rename(ten_diff = diff)
   
@@ -139,9 +165,13 @@ create_bar_plot <- function(year_i, diff_all_data){
           plot.title = element_text(size = 11),
           axis.text.x = element_text(size = 10),
           axis.text.y = element_text(size = 9)) +
-    ylim(c(-0.1, 0.1)) +
+    # ylim(c(-0.1, 0.1)) +
     annotate("text", x = 13, y = mean_ten, label = "平均", vjust = -0.5,
-             family="HiraKakuPro-W3") 
+             family="HiraKakuPro-W3") +
+    scale_y_continuous(
+      limits = c(-5,5),
+      breaks = c(seq(-5, 5, 2.5))
+    )
   
   output_plot_ten
   

@@ -1,6 +1,15 @@
 main <- function(){
   
   df_master <- read_df_csv("master", "master_2") 
+  
+  list_control <- df_c <- read_df_csv("geometry_base", "df_control_city") |> 
+    dplyr::distinct(city_id) |> 
+    dplyr::pull()
+  
+  df_master <- df_master |> 
+    dplyr::filter(
+      treatment == 1 | city_id %in% list_control
+    )
 
   treatment_id_lists <- df_master |> 
     dplyr::filter(treatment == 1) |> 
@@ -39,45 +48,14 @@ create_robust_df <- function(df_master) {
 }
 
 
-# add_outcome_variable <- function(df_master) {
-#   
-#   df_based <- df_master |> 
-#     dplyr::group_by(year, city_id) |> 
-#     dplyr::mutate(middle = sum(r20_24,
-#                                r25_29,
-#                                r30_34,
-#                                r35_39,
-#                                r40_44,
-#                                r45_49,
-#                                r50_54,
-#                                r55_59,
-#                                r60_64, na.rm = TRUE),
-#                   .after = r80_over) |> 
-#     dplyr::group_by(city_id) 
-#   
-#   return(df_based)
-#   
-# } 
 
-
-id_n <- 1549
+id_n <- 21421
 
 map_synth <- function(id_n, df_master)　{
   
   tictoc::tic()
   
-  # synth_data <- synth_ready(id_n, df_master) |> 
-  #   dplyr::relocate(outcome_percent, .after = year)
-  # 
-  # synth_data <- synth_data |> 
-  #   dplyr::mutate(rep_outcome = outcome_percent)
-  
-  synth_data <- df_master |> 
-    dplyr::group_by(city_id) |> 
-    dplyr::mutate(
-      cum_social = cumsum(replace_na(social_rate, 0))
-    ) |> 
-    dplyr::mutate(rep_outcome = cum_social) 
+  synth_data <- df_master 
   
   treatment_one <- synth_data |> 
     dplyr::filter(city_id == id_n) 
@@ -89,44 +67,120 @@ map_synth <- function(id_n, df_master)　{
   ss <- synth_data |>
     dplyr::ungroup() |> 
     dplyr::filter(treatment == 0 | city_id == id_n) |> 
-    distinct() |> 
+    distinct() 
     dplyr::filter(!city_id  %in% c(7367, 39303, 39304, 40231, 4216)) 
-  
-  # df_treatment <- ss |> 
-  #   dplyr::filter(
-  #     city_id == id_n,
-  #     year == year_end_n 
-  #   ) 
-  
-  # pre_year_outcome <- ss |> 
-  #   dplyr::filter(city_id == id_n,
-  #                 year == year_end_n + 1) |> 
-  #   dplyr::pull(rep_outcome)
   
   
   df_nan_check <- ss |> 
-    group_by(city_id) |> 
+    dplyr::filter( 
+      year >= 1996 & year <= year_end_n + 1
+      ) |> 
     dplyr::summarise(
       children = mean(household_with_children_rate, na.rm = TRUE),
       own = mean(own_household_rate, na.rm = TRUE),
       workforce = mean(workforce_rate, na.rm = TRUE),
       student = mean(student_rate, na.rm = TRUE),
       old_house = mean(old_house_rate, na.rm = TRUE),
-      population = mean(rep_outcome, na.rm = TRUE)
+      # population = mean(rep_outcome, na.rm = TRUE)
+      .by = c(city_id, treatment)
     ) 
-  
   
   list_in <- df_nan_check |> 
     tidyr::drop_na() |> 
     dplyr::distinct(city_id) |> 
     dplyr::pull()
   
+  df_treatment <- df_nan_check |> 
+    dplyr::filter(
+      treatment == 1
+    )
+  
   ss <- ss |> 
-    dplyr::filter(city_id %in% list_in)
+    dplyr::filter(city_id %in% list_in) |> 
+    dplyr::select(
+      -c(destroyed_all, destroyed_half)
+    ) |> 
+    distinct() |> 
+    dplyr::group_by(city_id) |> 
+    dplyr::mutate(
+      cum_social = cumsum(replace_na(social_rate, 0))
+    ) |> 
+    dplyr::mutate(rep_outcome = cum_social) |> 
+    dplyr::ungroup()
   
   
   # main synth ####
-  output_synth <- ss |>
+  
+  if (id_n == 1361) {
+    
+    
+    output_synth <- ss |>
+      
+      synthetic_control(
+        outcome = cum_social, 
+        unit = city_id, 
+        time = year, 
+        i_unit = id_n, 
+        i_time = year_end_n,
+        generate_placebos = F
+      ) |>
+      
+      generate_predictor(
+        time_window = 1995:year_end_n + 1,
+        children = mean(household_with_children_rate, na.rm = TRUE),
+        # own = mean(own_household_rate, na.rm = TRUE),
+        workforce = mean(workforce_rate, na.rm = TRUE),
+        student = mean(student_rate, na.rm = TRUE),
+        old_house = mean(old_house_rate, na.rm = TRUE),
+        population = mean(rep_outcome, na.rm = TRUE)
+        ) |>
+      
+                         # population = mean(rep_outcome, na.rm = TRUE)) |>
+      # generate_predictor(time_window = year_end_n + 1,
+      #                    pre_year_outcome = rep_outcome) |> 
+      
+      generate_weights(
+        optimization_window = 1995:year_end_n + 1,
+        margin_ipop = .02, sigf_ipop = 7, bound_ipop = 6
+      ) |>
+      generate_control()
+    
+  } else if (id_n == 1362){
+    
+    output_synth <- ss |>
+    
+    synthetic_control(
+      outcome = cum_social, 
+      unit = city_id, 
+      time = year, 
+      i_unit = id_n, 
+      i_time = year_end_n,
+      generate_placebos = F
+    ) |>
+    
+    generate_predictor(
+      time_window = 1995:year_end_n + 1,
+      children = mean(household_with_children_rate, na.rm = TRUE),
+      own = mean(own_household_rate, na.rm = TRUE),
+      # workforce = mean(workforce_rate, na.rm = TRUE),
+      student = mean(student_rate, na.rm = TRUE),
+      old_house = mean(old_house_rate, na.rm = TRUE),
+      population = mean(rep_outcome, na.rm = TRUE)
+    ) |>
+    
+    # population = mean(rep_outcome, na.rm = TRUE)) |>
+    # generate_predictor(time_window = year_end_n + 1,
+    #                    pre_year_outcome = rep_outcome) |> 
+    
+    generate_weights(
+      optimization_window = 1995:year_end_n + 1,
+      margin_ipop = .02, sigf_ipop = 7, bound_ipop = 6
+    ) |>
+    generate_control()
+    
+  } else if(id_n == 1648) {
+    
+    output_synth <- ss |>
     
     synthetic_control(
       outcome = cum_social, 
@@ -142,12 +196,12 @@ map_synth <- function(id_n, df_master)　{
       children = mean(household_with_children_rate, na.rm = TRUE),
       own = mean(own_household_rate, na.rm = TRUE),
       workforce = mean(workforce_rate, na.rm = TRUE),
-      student = mean(student_rate, na.rm = TRUE),
-      # old_house = mean(old_house_rate, na.rm = TRUE),
+      # student = mean(student_rate, na.rm = TRUE),
+      old_house = mean(old_house_rate, na.rm = TRUE),
       population = mean(rep_outcome, na.rm = TRUE)
-      ) |>
+    ) |>
     
-                       # population = mean(rep_outcome, na.rm = TRUE)) |>
+    # population = mean(rep_outcome, na.rm = TRUE)) |>
     # generate_predictor(time_window = year_end_n + 1,
     #                    pre_year_outcome = rep_outcome) |> 
     
@@ -156,6 +210,7 @@ map_synth <- function(id_n, df_master)　{
       margin_ipop = .02, sigf_ipop = 7, bound_ipop = 6
     ) |>
     generate_control()
+  }
   
   print(id_n)
   

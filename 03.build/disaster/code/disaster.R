@@ -23,9 +23,9 @@ read_higashi_dis <- function() {
   
   higashi <- read_excel_allsheets("02.raw/disaster/excel/higashi_nihon.xlsx") |> 
     dplyr::bind_rows() |> 
-    dplyr::select(2, 4, 10, 11)
+    dplyr::select(1, 2, 4, 10, 11)
   
-  colnames(higashi) <- c("city_name", "victims", "destroyed_all", "destroyed_half")
+  colnames(higashi) <- c("prefecture_name", "city_name", "victims", "destroyed_all", "destroyed_half")
   
   var_num <- c("victims", "destroyed_all", "destroyed_half")
   
@@ -33,9 +33,14 @@ read_higashi_dis <- function() {
     tidyr::drop_na(city_name) |> 
     dplyr::filter(city_name != "市町村",
                   city_name != "小計") |> 
-    dplyr::mutate_all(as.character()) |> 
-    dplyr::mutate_all(~str_remove_all(., fixed("."))) |> 
-    dplyr::mutate_at(dplyr::vars(var_num), as.numeric)
+    tidyr::fill(prefecture_name, .direction = 'down') |> 
+    dplyr::mutate_all(as.character()) %>% 
+    dplyr::mutate(across(everything(), ~str_remove_all(., fixed(".")))) |> 
+    dplyr::mutate_at(dplyr::vars(var_num), as.numeric) |> 
+    dplyr::filter(
+      !(prefecture_name == "北海道" & city_name == "伊達市"),
+      !(prefecture_name == "埼玉県" & city_name == "美里町")
+    ) 
   
   return(higashi_output)
   

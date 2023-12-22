@@ -1,18 +1,27 @@
 main <- function(){
   
-  treatment_data <- load_csv('complete', 'treatment_data.csv') |> 
-    dplyr::filter(treatment_year <= 2015,
-                  city_name != "揖斐郡大野町",
-                  city_name != "本巣郡北方町",
-                  city_name != "珠洲市",
-                  city_name != "鳳珠郡能登町",
-                  city_name != "十和田市",
-                  city_name != "行方市"
-                  )   
+  df_master <- read_df_csv("master", "master_2") 
   
+  list_control <- df_c <- read_df_csv("geometry_base", "df_control_city") |> 
+    dplyr::distinct(city_id) |> 
+    dplyr::pull()
   
-  treatment_name_lists <- unique(treatment_data$city_name)
+  df_master <- df_master |> 
+    dplyr::filter(
+      treatment == 1 | city_id %in% list_control
+    ) |> 
+    dplyr::group_by(city_id) |> 
+    dplyr::mutate(
+      cum_social = cumsum(replace_na(social_rate, 0))
+    ) |> 
+    dplyr::ungroup()
   
+  df_treatment <- df_master |> 
+    dplyr::filter(
+      treatment == 1
+    )
+  
+  treatment_name_lists <- unique(df_treatment$city_name)
   
   placebo_df <- purrr::map(treatment_name_lists, create_placebo_df, treatment_data) |> 
     dplyr::bind_rows() 

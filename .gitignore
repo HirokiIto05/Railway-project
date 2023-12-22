@@ -2,3 +2,27 @@
 .Rhistory
 .RData
 .Ruserdata
+
+# except this file
+!.gitignore
+
+# ignore all files in this directory
+01.cover/
+
+# ignore all files with these extensions
+*.exe
+*.html
+*.png
+*.pdf
+*.zip
+*.do
+*.csv
+*.xlsx
+*.xls
+*.dta
+*.rds
+*.DS_Store
+**.DS_Store
+# keep folder structure
+# !/00.cover/.gitkeep
+# !*.gitkeep

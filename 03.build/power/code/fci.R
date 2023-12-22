@@ -5,16 +5,59 @@ main <- function(){
   fci_data <- purrr::map(year_list, read_power) |> 
     dplyr::bind_rows()
   
-  write.csv(fci_data, 
+  df_master <- read_df_csv("master", "master_2")
+  
+  list_master <- df_master |> 
+    dplyr::mutate(
+      index_gun = regexpr("郡", city_name)
+      # city_name = stringr::str_replace_all(city_name, "群", "a")
+    ) |> 
+    mutate(
+      city_name = if_else(index_gun != -1,
+                          str_sub(city_name, start = index_gun + 1, end = -1),
+                          city_name)
+    ) |> 
+    dplyr::filter(
+      treatment == 1
+    ) |> 
+    distinct(city_name) |> 
+    pull()
+  
+  df_id_name <- read.xlsx("02.raw/municipalities_code/df_id_name.xlsx") |> 
+    dplyr::mutate(
+      index_gun = regexpr("郡", city_name)
+      # city_name = stringr::str_replace_all(city_name, "群", "a")
+    ) |> 
+    mutate(
+      city_name = if_else(index_gun != -1,
+                          str_sub(city_name, start = index_gun + 1, end = -1),
+                          city_name)
+    ) |> 
+    dplyr::select(
+      city_name, city_id
+    )
+  
+  fci_data_test <- fci_data |> 
+    left_join(df_id_name)
+  
+  
+  write.csv(fci_data_test, 
             here::here('03.build',
                        'power', 'data', 
                        'fci_data.csv'),
             fileEncoding = "CP932", 
             row.names = FALSE)
   
+    
+  list_name_a <- fci_data_test |> 
+    pull(city_name)
+  
+  list_name_b <- df_id_name |> 
+    pull(city_name)
+  
+  setdiff(list_master, list_name_a)
+  
 }
-
-
 
 
 read_power <- function(year_n){
@@ -59,11 +102,11 @@ read_power <- function(year_n){
   
   }
   
-  colnames(based_data) <- c("region_name", "city_name", "FCI")
+  colnames(based_data) <- c("region_name", "city_name", "fci")
   
   output_data <- based_data |> 
     dplyr::mutate(year = year_n, .after = city_name) |> 
-    dplyr::mutate(FCI = as.numeric(FCI))
+    dplyr::mutate(fci = as.numeric(fci))
   
   return(output_data)
   

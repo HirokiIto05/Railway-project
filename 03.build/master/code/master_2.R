@@ -2,25 +2,42 @@ main <- function() {
   
   # read data ####
   # 駅データ
-  # df_c <- read_df_csv("geometry_base", "df_control_city") 
-  df_t <- read_df_csv("geometry_base", "df_treatment_city") 
+  df_c <- read_df_csv("geometry_base", "df_control_city")
+    
+  df_t <- read_df_csv("geometry_base", "df_treatment_city") |> 
+    dplyr::mutate(
+      year_end = year_end + 1
+    ) 
+    
   # 人口・年齢別人口データ
-  df_pop <- read_df_csv("city_adjust", "pop")
+  df_pop <- read_df_csv("city_adjust", "pop") |> 
+    dplyr::mutate(
+      year = year - 1
+    )
   # df_age <- read_df_csv("city_adjust", "age_data") |> 
     # dplyr::mutate(city_name = str_replace_all(city_name, fixed("*"), "")) 
+  
+  df_treatment_id_name <- read.xlsx("03.build/geometry_base/data/df_treatment_id_name.xlsx")
   
   df_year_end <- df_t |> 
     dplyr::select(
       city_id,
-      year_end
+      year_end,
+      line_name
       ) |> 
     distinct()
   
-  list_treatment <- df_t |> 
-    dplyr::filter(year_end <= 2012,
-                  !city_name %in% c("鳳珠郡能登町", "珠洲市")) |> 
-    dplyr::distinct(city_id) |> 
+  list_treatment <- df_treatment_id_name |> 
+    dplyr::distinct(city_id) |>   
     dplyr::pull()
+  
+  list_treatment_name <- df_treatment_id_name |> 
+    dplyr::distinct(city_name) |>   
+    dplyr::pull()
+  
+  list_control <- df_c |> 
+    dplyr::distinct(city_id) |> 
+    pull()
   
   df_pop <- df_pop |> 
     dplyr::mutate(
@@ -31,9 +48,9 @@ main <- function() {
     )
   
   # 輸送密度・災害地域データ
-  # df_density <- read_df_csv("density", "master_density") |> 
-    # dplyr::select(-station_name) |> 
-    # dplyr::distinct()
+  # df_density <- read_df_csv("density", "master_density") |>
+  #   dplyr::select(-station_name) |>
+  #   dplyr::distinct()
   df_disaster <- read_df_csv("disaster", "master_disaster")
   
   # 隣接市町村データ
@@ -42,9 +59,36 @@ main <- function() {
   # 輸送密度・災害情報を加えるセクション ####
   df_master_int <- add_density_disaster(df_pop, df_disaster)
   
-  # 隣接市町村を除くセクション
-  df_master_int <- remove_adjacent(df_master_int, df_adjacent_city)
+  df_master_int_a |> 
+    # dplyr::filter(
+    #   victims >= 1
+    # ) |>
+    # dplyr::filter(
+    #   city_id %in% list_control
+    # ) |> 
+    distinct(city_id) |> 
+    nrow()
   
+  df_adjacent_city |>  
+    # dplyr::filter(
+    #   victims >= 1
+    # ) |> 
+    dplyr::filter(adjacent_id %in% list_control) |>
+    dplyr::distinct(adjacent_id) |> 
+    nrow()
+  
+  # 隣接市町村を除くセクション
+  df_master_int <- remove_adjacent(df_master_int, df_adjacent_city, list_treatment, list_treatment_name)
+  
+  # 死者数が1以上を除外
+  # df_master_int <- df_master_int |> 
+  df_master_int <- df_master_int |>
+    tidyr::replace_na(
+      list(victims = 0, destroyed_all = 0)
+    ) |> 
+    dplyr::filter(
+      destroyed_all == 0
+    )
   
   #　共変量を加えるセクション
   df_children <- read_df_csv("city_adjust", "children") |> 
@@ -52,7 +96,7 @@ main <- function() {
   df_housetype <- read_df_csv("city_adjust", "housetype") |> 
     dplyr::select(-city_name)
   # df_transport <- read_df_csv("city_adjust", "transport") |> 
-  #   change_transport_data() 
+  #   change_transport_data() |> 
   df_working <- read_df_csv("city_adjust", "working") |> 
     dplyr::select(-city_name)
   df_houseyear <- read_df_csv("city_adjust", "old_house") |> 
@@ -66,28 +110,51 @@ main <- function() {
                               df_houseyear) |> 
     dplyr::distinct()
   
+  # df_master_a |> 
+  #   dplyr::filter(
+  #     treatment == 0
+  #   ) |> 
+  #   dplyr::distinct(
+  #     city_id
+  #   ) |> 
+  #   nrow()
+  
   df_master <- df_master |> 
     dplyr::distinct() |> 
     tidyr::drop_na(city_name) |> 
     dplyr::mutate(cut_off = ifelse((treatment == 1 & year_end <= year), 1, 0),
                   .after = city_id) |> 
-    dplyr::filter(year_end <= 2012 | is.na(year_end)) |> 
-    dplyr::filter(city_name != "鳳珠郡能登町",
-                  city_name != "珠洲市") |> 
+    # dplyr::filter(
+    #   city_id %in% list_treatment | city_id %in% list_control
+    # ) |> 
+    # dplyr::filter(year_end <= 2014 | is.na(year_end)) |> 
+    # dplyr::filter(city_name != "鳳珠郡能登町", # treatment同士で隣接、廃線年異なる
+    #               city_name != "珠洲市") |> 
     dplyr::relocate(
       year_end, .after = year
     )
   
+  df_master |>
+    dplyr::filter(
+      treatment == 1
+    ) |>
+    distinct(city_id) |>
+    nrow()
+  
+  df_aa <- df_master |> 
+    dplyr::select(city_id,
+                  city_name,
+                  destroyed_all,
+                  destroyed_half,
+                  victims) |> 
+    dplyr::summarise(
+      n = dplyr::n(),
+      .by = city_name
+    )
   
   # save_df_csv(df_master, "master", "master")
-  save_df_csv(df_master, "master", "master_2")
-  
-  list_omitted <- c(1233,
-                    4505,
-                    7213,
-                    11381,
-                    12421,
-                    43348)
+  save_df_csv(df_master, "master", "master_all")
+  # save_df_csv(df_master, "master", "master_all_municipalities")
   
 } 
 
@@ -150,8 +217,8 @@ add_covariates <- function(df_input, df_children, df_housetype,
     dplyr::group_by(city_id, year) |> 
     dplyr::mutate(household_with_children_rate = (children_household/household), 
                   .after = children_household) |> 
-    dplyr::mutate(own_household_rate = (own_household/household), 
-                  .after = own_household) |> 
+    dplyr::mutate(own_household_rate = (household_own/household), 
+                  .after = household_own) |> 
     dplyr::mutate(workforce_rate = (workforce_pop/total), 
                   .after = workforce_pop) |> 
     dplyr::mutate(student_rate = (student_pop/total), 
@@ -169,28 +236,25 @@ add_covariates <- function(df_input, df_children, df_housetype,
 
 # df_test <- df_master_int
 
-remove_adjacent <- function(df_master_int, df_adjacent_city) {
+remove_adjacent <- function(df_master_int, df_adjacent_city, list_treatment, list_treatment_name) {
   
-  list_treatment_city <- df_master_int |> 
-    dplyr::filter(treatment == 1) |> 
-    dplyr::distinct(city_id) |> 
-    dplyr::pull()
-  
-  df_adjacent_city <- df_adjacent_city |> 
+  df_adjacent_city <- df_adjacent_city |>
+  # aa <- df_adjacent_city |>
     dplyr::filter(
-      !adjacent_id %in% list_treatment_city
-    )
+      city_name %in% list_treatment_name,
+      !adjacent_id %in% list_treatment
+    ) 
   
   list_adjacent <- df_adjacent_city |> 
     dplyr::distinct(adjacent_id) |> 
     dplyr::pull()
   
-  
   df_output <- df_master_int |> 
-    dplyr::filter(!city_id  %in% list_adjacent)
+    dplyr::filter(!city_id %in% list_adjacent)
   
   return(df_output)
   
 }
+
 
 

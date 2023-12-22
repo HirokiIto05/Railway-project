@@ -1,6 +1,6 @@
 main <- function(){
   
-  treatment_data <- load_csv('complete', 'treatment_data.csv') |> 
+  df_master <- read_df_csv("master", "master")
     # dplyr::filter(treatment_year <= 2015,
     #               city_name != "揖斐郡大野町",
     #               city_name != "本巣郡北方町",
@@ -10,43 +10,49 @@ main <- function(){
     #               city_name != "行方市"
     # )   
   
-  treatment_name_lists <- unique(treatment_data$city_name)
+  # treatment_name_lists <- unique(treatment_data$city_name)
   
   
   treatment_name_lists
-
   
+  list_data <- list.files("/Users/ito_hiroki/01.Research/Railway-project/04.analyze/synthetic_control/table_300/data/")
+
   
     
 }
 
-purrr::map(treatment_name_lists, read_plot, treatment_data)
+purrr::map(list_data, read_plot, df_master)
 
+file_path <- list_data[1]
 
-city_name_t <- "常呂郡訓子府町"
-
-read_plot <- function(city_name_t, treatment_data){
+read_plot <- function(file_path, df_master){
   
-  print(city_name_t)
+  print(file_path)
   
-  file_name <- paste0(city_name_t, ".rds")
+  city_name_t <- stringr::str_sub(file_path, start = 1, end = -5)
   
-  base_plot <- readRDS(here::here('04.analyze','synthetic_control',
-                                  'add_outcome_predictor','table', file_name))
+  # file_name <- paste0(city_name_t, ".rds")
+  # 
+  # base_plot <- readRDS(here::here('04.analyze','synthetic_control',
+  #                                 'add_outcome_predictor','table', file_name))
+  
+  base_plot <- readRDS(paste0("04.analyze/synthetic_control/new_table/new_table/table/", file_path))
   
   
-  tt <- base_plot |> grab_synthetic_control() 
+  df_plot_based <- base_plot |> 
+    grab_synthetic_control() 
   
-  int_year <- treatment_data |> 
+  df_treatment <- df_master |> 
     dplyr::filter(city_name == city_name_t)
   
-  region_name_t <- unique(int_year$region_name)
+  # region_name_t <- unique(df_treatment$prefe)
   
-  title_name <- paste0(city_name_t,':', region_name_t)
+  # title_name <- paste0(city_name_t,':', region_name_t)
+  title_name <- paste0(city_name_t)
   
-  int_year <- unique(int_year$treatment_year)
+  int_year <- unique(df_treatment$year_end)
   
-  output_plot <- ggplot(tt) +
+  output_plot <- ggplot(df_plot_based) +
     geom_line(aes(x = time_unit ,y = real_y,  linetype = "Treatment")) +
     geom_line(aes(x = time_unit, y = synth_y, linetype = "Synthetic"), size = 0.5) +
     scale_linetype_manual(name = "" ,values = c("Treatment" = "solid",
@@ -75,9 +81,14 @@ read_plot <- function(city_name_t, treatment_data){
   
   pdf_name <- paste0(city_name_t, ".png")
 
-  file_name_figure <- paste0(here::here('04.analyze','synthetic_control',
-                                        'add_outcome_predictor',
-                                        'figure', pdf_name))
+  # file_name_figure <- paste0(here::here('04.analyze','synthetic_control',
+  #                                       'add_outcome_predictor',
+  #                                       'figure', pdf_name))
+  
+  file_name_figure <- paste0(here::here("04.analyze/synthetic_control/new_table/new_table/png", pdf_name))
+  
+  file_name_figure
+
 
   ggsave(output_plot, filename = file_name_figure)
   
