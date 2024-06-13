@@ -1,0 +1,69 @@
+---
+title: "TWFE_staggered"
+date: today 
+format: 
+  html: 
+    embed-resources: true
+    self-contained: true
+execute: 
+  echo: false
+---
+
+
+```{r}
+library(tidyr)
+library(dplyr)
+library(ggplot2)
+library(fixest)
+library(here)
+library(kableExtra)
+library(stringr)
+library(readxl)
+```
+
+
+```{r}
+#| label: Read data
+
+df_cutline <- read_df_csv("geometry_base", "df_abandoned")
+
+df_all_line <- read_xlsx(here("02.raw", "geometry_data", "geo_base_treatment.xlsx")) |> 
+    dplyr::select(2,3,5,6,11,12,15,16)
+```
+
+```{r}
+#| label: detect cut line
+
+list_abandoned <- df_cutline |> 
+    distinct(line_name) |> 
+    pull() |> 
+    sort()
+
+colnames(df_all_line) <- c('line_name', 'company_name', 
+                           'year_start', 'year_end',
+                           'station_name', 'prefecture_name',
+                           'city_name', 'city_id')
+
+df_treatment_muns <- df_all_line |>
+    mutate(across(c(year_start, year_end), as.numeric)) |> 
+    filter(
+        line_name %in% list_abandoned,
+        between(year_end, 1995, 2018)
+        ) 
+```
+
+```{r}
+
+df_treatment_muns |> distinct(city_name) |> pull() |> length()
+
+```
+
+```{r}
+
+
+```
+
+
+
+
+

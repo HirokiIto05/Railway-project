@@ -1,3 +1,4 @@
+source("renv/activate.R")
 # install.packages("tidyverse")
 # install.packages("ggplot2")
 # install.packages("readxl")
@@ -8,12 +9,12 @@
 # install.packages("Synth")
 
 
-
-source(here::here('06.tools', 'load_first', 'source.R'))
-
-
 if (interactive() & requireNamespace("shrtcts", quietly = TRUE)) {
   shrtcts::add_rstudio_shortcuts()
+}
+
+if (interactive() && Sys.getenv("RSTUDIO") == "") {
+  source(file.path(Sys.getenv(if (.Platform$OS.type == "windows") "USERPROFILE" else "HOME"), ".vscode-R", "init.R"))
 }
 
 

@@ -46,7 +46,9 @@ main <- function() {
 
 read_geometry <- function(file_name_n) {
   
-  geo_based <- read_df_xlsx("geometry_base", file_name_n)
+  geo_based <- readxl::read_xlsx(here::here("03.build", "geometry_base", "data", "geometry_continue.xlsx"))
+
+  geo_based |> View()
     
   output_df <- geo_based |> 
     dplyr::select(3, 4, 5, 6, 9, 10)

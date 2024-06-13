@@ -17,7 +17,7 @@ main <- function() {
 read_df_base <- function() {
   
   geo_output <- readxl::read_xlsx(here::here('02.raw', 'geometry_data', 
-                                             'geo_base_treatment.xlsx')) |> 
+                                             'geo_base_treatment.xlsx'))  |> 
     dplyr::select(2,3,5,6,11,12,15,16)
   
   colnames(geo_output) <- c('line_name', 'company_name', 
@@ -29,7 +29,19 @@ read_df_base <- function() {
   
 }
 
-geo_input = geo_based
+list_end_line <- df |> 
+  distinct(line_name) |>
+  pull()
+
+list_geo <- geo_output |> 
+  filter(line_name %in% list_end_line) |>
+  distinct(line_name) |> 
+  pull() 
+
+setdiff(list_end_line, list_geo)
+
+length(list_end_line)
+length(list_geo)
 
 
 read_mod_geo_treat <- function(geo_input, list_t_city) {
@@ -46,5 +58,6 @@ read_mod_geo_treat <- function(geo_input, list_t_city) {
 
   return(df_output)  
 }
+
 
 

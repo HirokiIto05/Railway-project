@@ -8,6 +8,8 @@
 
 # ignore all files in this directory
 01.cover/
+01_data/
+
 
 # ignore all files with these extensions
 *.exe
@@ -22,7 +24,8 @@
 *.dta
 *.rds
 *.DS_Store
-**.DS_Store
+
+
 # keep folder structure
 # !/00.cover/.gitkeep
 # !*.gitkeep
