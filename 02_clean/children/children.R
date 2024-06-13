@@ -2,9 +2,11 @@ main <- function(){
   
   year_list <- seq(1995,2010,by= 5)
   
+  # aggregate
   df_child_all <- purrr::map(year_list, read_child) |> 
     dplyr::bind_rows()
 
+  # clean
   df_child_all <- df_child_all |>
     dplyr::mutate(
       across(c(city_id, year, value), as.numeric)
@@ -16,6 +18,7 @@ main <- function(){
       household_with_child = value
     )
 
+  # merger
   df_merger <- readxl::read_xlsx(here::here("01_data", "raw", "municipality_converter", "municipality_converter_jp.xlsx"))
   
   list_current_id <- df_merger |> 
@@ -26,7 +29,16 @@ main <- function(){
   
   df_master_child <- purrr::map(list_current_id, adjust_city_id, df = df_child_all, df_merger, list_vars) |> 
     dplyr::bind_rows()
-    
+
+  # check; an output is only "1741"
+  df_master_child %>%
+    dplyr::summarise(
+        unique_id = length(unique(.$city_id)),
+        .by = year
+    ) |>
+    dplyr::distinct(unique_id)
+
+  # save    
   write.csv(
     df_master_child,
     here::here("01_data", "intermediate", "covariates", "children_master.csv"),

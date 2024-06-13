@@ -31,8 +31,10 @@ main <- function() {
   list_current_id <- df_merger |> 
     dplyr::distinct(id_muni2020) |> 
     dplyr::pull()
+
+    list_vars <- c("owned", "total_household")
   
-  df_master_housetype<- purrr::map(list_current_id, adjust_city_id, df = df_housetype_all, df_merger) |> 
+  df_master_housetype <- purrr::map(list_current_id, adjust_city_id, df = df_housetype_all, df_merger, list_vars) |> 
     dplyr::bind_rows()
 
   write.csv(
@@ -197,11 +199,11 @@ read_housetype <- function(year_i) {
 }
 
 
-adjust_city_id <- function(id_n, df, df_merger){
-  print(id_n)
+adjust_city_id <- function(id_i, df, df_merger, list_vars){
+  print(id_i)
 
   list_id <- df_merger |> 
-    dplyr::filter(id_muni2020 == id_n) |> 
+    dplyr::filter(id_muni2020 == id_i) |> 
     dplyr::select(seq(2,10)) |> 
     tidyr::pivot_longer(
       cols = dplyr::everything(),
@@ -217,11 +219,6 @@ adjust_city_id <- function(id_n, df, df_merger){
       year = as.character(year),
       city_id = as.character(city_id)
       )
-  
-  list_vars <- c(
-    "owned",
-    "total_household"
-  )
 
   output_data <- df_id_n |>
     dplyr::reframe(
@@ -229,8 +226,7 @@ adjust_city_id <- function(id_n, df, df_merger){
       .by = year
     ) |>
     dplyr::mutate(
-      city_id = id_n
-      # city_name = city_name_i
+      city_id = id_i
     )
 
   return(output_data)
