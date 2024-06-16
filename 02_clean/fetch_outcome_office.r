@@ -12,7 +12,7 @@ fetch_private_companies <- function(appid) {
     # 2006; 0003000452 # ?
     
     # 経済センサス - 基礎調査
-    # 2009; 0003032532
+    # 2009; 0003032532 # not correct
     # 2014; 0003117639
     # 2019_a; 0003422213 - private
     # 2019_b; 0003414253 - public
@@ -75,6 +75,8 @@ fetch_private_companies <- function(appid) {
     df_raw <- estatapi::estat_getStatsData(
         appId = appid,
         statsDataId = "0003032532")
+
+    df_raw |>  View()
     write.csv(df_raw, here::here("01_data", "raw", "private_companies", "2009.csv"), fileEncoding = "CP932", row.names = FALSE)
 
     # 経済センサス - 基礎調査

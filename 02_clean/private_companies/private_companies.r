@@ -29,7 +29,7 @@ main <- function() {
     2001,
     2004,
     2006,
-    2009,
+    2009, 
     2014,
     2019,
     2012,
@@ -74,7 +74,6 @@ main <- function() {
 
 }
 
-year_i <- 1991
 read_office <- function(year_i, folder_name) {
   print(year_i)
 
@@ -259,7 +258,6 @@ read_office <- function(year_i, folder_name) {
       )
 
   } else if(year_i == 2009){
-
     df_raw <- read.csv(here::here("01_data", "raw", folder_name, paste0(year_i, ".csv")), fileEncoding = "CP932")
 
     df_output <- df_raw |> 

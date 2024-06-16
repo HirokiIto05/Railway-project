@@ -91,46 +91,65 @@ fetch_residence_year <- function(appid) {
 
 
 fetch_working <- function(appid) {
-    # 1995; 0000032371 over 5 billion
-    # 1995; 0000032373
-    # 2000; 0000033134
-    # 2005; 0000033948
-    # 2010; 0003052121
+    # 1995_a; 0000032370
+    # 1995_a; FEH_00200521_240616150337.csv
+    # 1995_b; 0000032372
+    # 1995_b; FEH_00200521_240616151544.csv
+    # 2000;   0000033143
+    # 2000;   FEH_00200521_240616151140.csv
+    # 2005;   0000033948
+    # 2005;   FEH_00200521_240616151348.csv
+    # 2010;   0003052121
+    # 2010;   FEH_00200521_240616151753.csv
 
+    # data is very large, so we ristrict raw data when fetching 
 
-    df_raw <- estatapi::estat_getStatsData(
-      appId = appid,
-      statsDataId = "0000032371")
+    # １５歳以上年齢各歳 : 総数
+    # 労働力状態 : 就業者数
+    # 全域・集中の別030184 : 全域
+    # 男女 : 総数
+    # 配偶関係５031126 : 総数（不詳含む）
 
-    write.csv(df_raw, here::here("01_data", "raw", "working", "1995_a.csv"), fileEncoding = "CP932", row.names = FALSE)    
+    # ダウンロード設定：
+    # ヘッダの出力 : しない
+    # コードの出力 : しない
 
-    df_raw <- estatapi::estat_getStatsData(
-      appId = appid,
-      statsDataId = "0000032373")
+    # 1995
+    # df_raw <- estatapi::estat_getStatsData(
+    #   appId = appid,
+    #   statsDataId = "0000032370")
+    # write.csv(df_raw, here::here("01_data", "raw", "worker", "1995_a.csv"), fileEncoding = "CP932", row.names = FALSE)    
+    # 1995
+    # df_raw <- estatapi::estat_getStatsData(
+    #   appId = appid,
+    #   statsDataId = "0000032372")
+    # write.csv(df_raw, here::here("01_data", "raw", "worker", "1995_b.csv"), fileEncoding = "CP932", row.names = FALSE)    
+    
+    # 2000; statsDataId = "0000033134"
+    # save a different way because of the large size
+    # access https://www.e-stat.go.jp/stat-search/database?page=1&layout=datalist&toukei=00200521&tstat=000000030001&cycle=0&tclass1=000000030147&tclass2=000000030151&statdisp_id=0000033134&tclass3val=0
+    # click DB to reduce data
+    # 
+    # 配偶関係５031126 : 総数（不詳含む）
+    # 全域・集中の別030184 : 全域
+    # 男女 : 総数
+    # 労働力状態031129 : 総数、労働力人口、就業者、非労働力人口
 
-    write.csv(df_raw, here::here("01_data", "raw", "working", "1995_b.csv"), fileEncoding = "CP932", row.names = FALSE)    
-
-    df_raw <- estatapi::estat_getStatsData(
-      appId = appid,
-      statsDataId = "0000033134")
-
-    write.csv(df_raw, here::here("01_data", "raw", "working", "2000.csv"), fileEncoding = "CP932", row.names = FALSE)    
-
-    df_raw <- estatapi::estat_getStatsData(
-      appId = appid,
-      statsDataId = "0000033948")
-
-    write.csv(df_raw, here::here("01_data", "raw", "working", "2005.csv"), fileEncoding = "CP932", row.names = FALSE)    
-
-    df_raw <- estatapi::estat_getStatsData(
-      appId = appid,
-      statsDataId = "0003052121")
-
-    write.csv(df_raw, here::here("01_data", "raw", "working", "2010.csv"), fileEncoding = "CP932", row.names = FALSE)    
+    # 2005
+    # df_raw <- estatapi::estat_getStatsData(
+    #   appId = appid,
+    #   statsDataId = "0000033948")
+    # write.csv(df_raw, here::here("01_data", "raw", "worker", "2005.csv"), fileEncoding = "CP932", row.names = FALSE)    
+    # 2010
+    # df_raw <- estatapi::estat_getStatsData(
+    #   appId = appid,
+    #   statsDataId = "0003052121")
+    # write.csv(df_raw, here::here("01_data", "raw", "worker", "2010.csv"), fileEncoding = "CP932", row.names = FALSE)    
 
 
 
 }
+
 
 
 fetch_student <- function(appid) {
@@ -145,3 +164,9 @@ fetch_student <- function(appid) {
 # fetch_housetype(appid)
 # fetch_residence_year(appid)
 fetch_working(appid)
+
+pacman::p_load(
+  readr,
+  dplyr,
+  stringr,
+)
