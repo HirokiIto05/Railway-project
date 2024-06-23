@@ -1,9 +1,10 @@
 main <- function(){
   
-  year_list <- seq(1995,2010,by= 5)
+  # year_list <- seq(1995,2010,by= 5)
+  list_filenames <- c("1995_a.csv", "1995_b.csv", "2000.csv", "2005.csv", "2010.csv")
   
   # aggregate
-  df_worker_all <- purrr::map(year_list, read_worker) |> 
+  df_worker_all <- purrr::map(list_filenames, read_worker) |> 
     dplyr::bind_rows()
 
   # clean
@@ -13,9 +14,9 @@ main <- function(){
     ) |>
     dplyr::mutate(
       city_id = as.character(city_id)
-    )  |>
+    ) |>
     dplyr::rename(
-      household_with_worker = value
+      worker = value
     )
 
   # merger
@@ -25,7 +26,7 @@ main <- function(){
     dplyr::distinct(id_muni2020) |> 
     dplyr::pull()
 
-  list_vars <- c("household_with_worker")
+  list_vars <- c("worker")
   
   df_master_worker <- purrr::map(list_current_id, adjust_city_id, df = df_worker_all, df_merger, list_vars) |> 
     dplyr::bind_rows()
@@ -48,185 +49,26 @@ main <- function(){
   
 }
 
+read_worker <- function(file_name_i){
 
-year_i <- 1995
+  df_raw <- read.csv(here::here("01_data", 'raw', 'worker', file_name_i), fileEncoding = "CP932")
 
-read_worker <- function(year_i){
-
-  # 1995_a; FEH_00200521_240616150337.csv
-  # 1995_b; FEH_00200521_240616151544.csv
-  # 2000;   FEH_00200521_240616151140.csv
-  # 2005;   FEH_00200521_240616151348.csv
-  # 2010;   FEH_00200521_240616151753.csv
-
-  
-  file_name <- paste0(year_i, ".csv")
-  
-  if(year_i == 1995){
-    df_raw_1 <- read.csv(here::here("01_data", 'raw', 'worker', "FEH_00200521_240616150337.csv"), fileEncoding = "CP932")
-
-    df_raw_1 |> View()
-
-    df_output_1 <- df_raw_1 |> 
-      dplyr::select(
-        category_area  = 1,
-        category_gender = 2,
-        category_age = 3,
-        city_id = 4,
-        city_name = 5,
-        year = 12,
-        unit,
-        value
-        ) |>
-      dplyr::mutate(
-        dplyr::across(dplyr::everything(), ~stringr::str_replace_all(., "　", ""))
+  df_output <- df_raw |> 
+    dplyr::select(
+      city_id = X.area,
+      year = X.time,
+      value = X.
       ) |>
-      dplyr::filter(
-        category_area == "全域",
-        category_gender == "総数",
-        category_age == "総数（15歳以上）",
-        category_status == "就業者"
-      ) |> 
-      dplyr::select(
-        city_id,
-        city_name,
-        year,
-        value
-      )
-
-    df_raw_2 <- read.csv(here::here("01_data", 'raw', 'worker', "FEH_00200521_240616151544.csv"), fileEncoding = "CP932")
-
-    df_output_2 <- df_raw_2 |> 
-      dplyr::select(
-        category_area  = 2,
-        category_gender = 4,
-        category_age = 6,
-        category_status = 8,
-        city_id = 9,
-        city_name = 10,
-        year = 12,
-        unit,
-        value
-        ) |>
-      dplyr::mutate(
-        dplyr::across(dplyr::everything(), ~stringr::str_replace_all(., "　", ""))
-      ) |>
-      dplyr::filter(
-        category_area == "全域",
-        category_gender == "総数",
-        category_age == "総数（15歳以上）",
-        category_status == "就業者"
-      ) |> 
-      dplyr::select(
-        city_id,
-        city_name,
-        year,
-        value
-      )
-  } else if(year_i == 2000){
-
-    df_raw <- read.csv(here::here("01_data", 'raw', 'worker', "FEH_00200521_240616151140.csv"), fileEncoding = "CP932")
-
-    df_worker <- df_raw_1 |> 
-      dplyr::select(
-        category_area  = 2,
-        category_gender = 4,
-        category_age = 6,
-        category_status = 8,
-        city_id = 9,
-        city_name = 10,
-        year = 12,
-        unit,
-        value
-        ) |>
-      dplyr::mutate(
-        dplyr::across(dplyr::everything(), ~stringr::str_replace_all(., "　", ""))
-      ) |>
-      dplyr::filter(
-        category_area == "全域",
-        category_gender == "総数",
-        category_age == "総数（15歳以上）",
-        category_status == "就業者"
-      ) |> 
-      dplyr::select(
-        city_id,
-        city_name,
-        year,
-        value
-      )
-    
-  } else if(year_i == 2005){
-
-    df_raw <- read.csv(here::here("01_data", 'raw', 'worker', "FEH_00200521_240616151348.csv"), fileEncoding = "CP932")
-
-    df_worker <- df_raw_1 |> 
-      dplyr::select(
-        category_area  = 2,
-        category_gender = 4,
-        category_age = 6,
-        category_status = 8,
-        city_id = 9,
-        city_name = 10,
-        year = 12,
-        unit,
-        value
-        ) |>
-      dplyr::mutate(
-        dplyr::across(dplyr::everything(), ~stringr::str_replace_all(., "　", ""))
-      ) |>
-      dplyr::filter(
-        category_area == "全域",
-        category_gender == "総数",
-        category_age == "総数（15歳以上）",
-        category_status == "就業者"
-      ) |> 
-      dplyr::select(
-        city_id,
-        city_name,
-        year,
-        value
-      )
-    
-  } else if (year_i == 2010){
-    df_worker <- df_worker |> 
-      dplyr::select(
-        category_household = 2,
-        category_area  = 4,
-        category_family = 6,
-        city_id = 7,
-        city_name = 8,
-        year = 10,
-        household = 11,
-        value = 12
-        ) |> 
-      dplyr::filter(
-        category_household == category_name,
-        category_area == "全域",
-        category_family == "総数（世帯人員）",
-        household == "世帯"
-      ) |> 
-      dplyr::mutate(
-        year = stringr::str_replace_all(year, "年", ""),
-        year = as.numeric(year)) |> 
-      dplyr::select(
-        city_id,
-        city_name,
-        year,
-        value
-      ) 
-  }
-
-  df_worker <- df_worker |>
     dplyr::mutate(
-      across(everything(), as.character)
+      year = stringr::str_sub(year, 1, 4)
+    ) |>
+    dplyr::mutate(
+      dplyr::across(dplyr::everything(), as.character)
     )
   
-  return(df_worker)
+  return(df_output)
   
 }
-
-
-
 
 
 adjust_city_id <- function(id_n, df, df_merger, list_vars){
@@ -263,147 +105,6 @@ adjust_city_id <- function(id_n, df, df_merger, list_vars){
   return(output_data)
   
 }
-
-
-read_worker_3 <- function(year_i){
-  
-  file_name <- paste0(year_i, ".csv")
-  
-  if(year_i == 1995){
-    df_raw <- read.csv(here::here("01_data", 'raw', 'worker_3', "1995.csv"), fileEncoding = "CP932")
-    df_raw |> View()
-
-    df_output <- df_raw |> 
-      dplyr::select(
-        category_area  = 2,
-        category_position = 4,
-        category_gender = 6,
-        category_industry = 8,
-        category_job = 10,
-        city_id = 11,
-        city_name = 12,
-        year = 14,
-        unit,
-        value
-        ) |>
-      dplyr::mutate(
-        dplyr::across(dplyr::everything(), ~stringr::str_replace_all(., "　", ""))
-      ) |>
-      dplyr::filter(
-        category_area == "全域",
-        category_position == "総数",
-        category_gender == "総数",
-        category_job == "総数"
-      ) |> 
-      dplyr::select(
-        city_id,
-        city_name,
-        year,
-        value
-      )
-    
-  } else if(year_i == 2000){
-    df_raw <- read.csv(here::here("01_data", 'raw', 'worker_3', "2000.csv"), fileEncoding = "CP932")
-
-    df_output <- df_raw |> 
-      dplyr::select(
-        category_position = 2,
-        category_gender = 4,
-        category_age = 6,
-        category_job = 8,
-        city_id = 9,
-        city_name = 10,
-        year = 12,
-        unit,
-        value
-        ) |>
-      dplyr::mutate(
-        dplyr::across(dplyr::everything(), ~stringr::str_replace_all(., "　", ""))
-      ) |>
-      dplyr::filter(
-        category_position == "総数",
-        category_gender == "総数",
-        category_age == "総数（15歳以上）",
-        category_job == "総数"
-      ) |> 
-      dplyr::select(
-        city_id,
-        city_name,
-        year,
-        value
-      )
-
-    } else if (year_i == 2005){
-    df_raw <- read.csv(here::here("01_data", 'raw', 'worker_3', "2005_a.csv"), fileEncoding = "CP932")
-
-    df_raw |>colnames()
-
-    df_output <- df_raw |> 
-      dplyr::select(
-        category_position = 2,
-        category_gender = 4,
-        category_age = 6,
-        category_job = 8,
-        city_id = 9,
-        city_name = 10,
-        year = 12,
-        unit,
-        value
-        ) |>
-      dplyr::mutate(
-        dplyr::across(dplyr::everything(), ~stringr::str_replace_all(., "　", ""))
-      ) |>
-      dplyr::filter(
-        category_position == "全域",
-        category_gender == "総数",
-        category_age == "総数（15歳以上）",
-        category_job == "総数"
-      ) |> 
-      dplyr::select(
-        city_id,
-        city_name,
-        year,
-        value
-      )
-    } else if (year_i == 2010){
-    df_worker <- df_worker |> 
-      dplyr::select(
-        category_household = 2,
-        category_area  = 4,
-        category_family = 6,
-        city_id = 7,
-        city_name = 8,
-        year = 10,
-        household = 11,
-        value = 12
-        ) |> 
-      dplyr::filter(
-        category_household == category_name,
-        category_area == "全域",
-        category_family == "総数（世帯人員）",
-        household == "世帯"
-      ) |> 
-      dplyr::mutate(
-        year = stringr::str_replace_all(year, "年", ""),
-        year = as.numeric(year)) |> 
-      dplyr::select(
-        city_id,
-        city_name,
-        year,
-        value
-      ) 
-  }
-
-  df_worker <- df_worker |>
-    dplyr::mutate(
-      across(everything(), as.character)
-    )
-  
-  return(df_worker)
-  
-}
-
-
 
 
 

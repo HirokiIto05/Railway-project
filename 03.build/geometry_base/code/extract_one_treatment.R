@@ -53,7 +53,7 @@ extract_treatment_city <- function(df_current, df_treatment) {
     dplyr::filter(city_name %in% list_current_city,
                   year_end >= 1999) 
   
-　list_city_one_end <- df_treatment_one |> 
+  list_city_one_end <- df_treatment_one |> 
     dplyr::distinct(year_end, city_name) |>
     group_by(city_name) |> 
     dplyr::filter(n() == 1) |> 

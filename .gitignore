@@ -9,6 +9,7 @@
 # ignore all files in this directory
 01.cover/
 01_data/
+chromedriver-mac-arm64/
 
 
 # ignore all files with these extensions

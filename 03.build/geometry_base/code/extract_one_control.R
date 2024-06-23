@@ -1,16 +1,19 @@
 main <- function() {
   
   geo_current <- read_geometry("geometry_continue") 
+
+  geo_current |> distinct(line_name)
   
   list_current_city <- geo_current |> 
     select(city_name) |> 
     dplyr::distinct() |> 
     unlist() |> 
     as.character()
-  
+
   df_control <- read_main_list("control")
   
   df_local_jr <- read_local_line() 
+
   
   # jr以外の路線
   df_local <- df_control |> 
@@ -21,12 +24,11 @@ main <- function() {
     dplyr::left_join(geo_current) |> 
     dplyr::select(line_name, company_name) |> 
     distinct()
-  
+
   # jrとjr以外のdfを結合
   df_local_both <- dplyr::bind_rows(df_local, 
                                     df_local_jr) |> 
     distinct()
-  
   
   df_one_line <- purrr::map(list_current_city, extract_one_line_city,
                             geo_current) |> 
@@ -38,7 +40,23 @@ main <- function() {
     dplyr::mutate(year_end = 0, .after = prefecture_name) |> 
     dplyr::relocate(line_name, .before = station_name) |> 
     dplyr::relocate(company_name, .before = line_name)
-  
+
+  list_old <- df_control_city |> 
+  drop_na() |> 
+  dplyr::filter(company_name != "東海旅客鉄道") |>
+  distinct(city_name, line_name) |> 
+  pull(city_name)
+
+df_control_city |> 
+tidyr::drop_na() |>
+dplyr::filter(company_name != "東海旅客鉄道") |>
+summarise(
+  n = n_distinct(line_name),
+  .by = city_name
+) |> View()
+
+df_local_both |> View()
+df_control_city |> distinct(city_id)
   save_df_csv(df_control_city, 'geometry_base', 'df_control_city')
 
 }
@@ -47,8 +65,6 @@ main <- function() {
 read_geometry <- function(file_name_n) {
   
   geo_based <- readxl::read_xlsx(here::here("03.build", "geometry_base", "data", "geometry_continue.xlsx"))
-
-  geo_based |> View()
     
   output_df <- geo_based |> 
     dplyr::select(3, 4, 5, 6, 9, 10)
@@ -87,17 +103,18 @@ read_local_line <- function() {
   
 }
 
+city_name_n = list_current_city[1]
 
 extract_one_line_city <- function(city_name_n, geo_current) {
   print(city_name_n)
-  
+
   df_one_city <- geo_current |> 
     dplyr::filter(city_name == city_name_n)
-  
+
   df_line_only <- df_one_city |> 
     dplyr::select(line_name, company_name, city_id) |> 
     dplyr::distinct() 
-  
+
   num_line <- nrow(df_line_only)
   
   if(num_line == 1) {
