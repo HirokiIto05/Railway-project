@@ -41,7 +41,7 @@ main <- function(){
   # save    
   write.csv(
     df_master_child,
-    here::here("01_data", "intermediate", "covariates", "children_master.csv"),
+    here::here("01_data", "intermediate", "covariates", "children.csv"),
     fileEncoding = "cp932", 
     row.names = FALSE)
 
@@ -171,3 +171,6 @@ adjust_city_id <- function(id_n, df, df_merger, list_vars){
   
 }
 
+
+
+main()

@@ -3,7 +3,7 @@ main <- function(){
   list_year <- seq(2000, 2010, by = 10)
 
   # aggregate
-  df_residence_year_all <- purrr::map(year_list, read_residence_year) |> 
+  df_residence_year_all <- purrr::map(list_year, read_residence_year) |> 
     dplyr::bind_rows() |>
     dplyr::distinct()
 
@@ -48,7 +48,7 @@ main <- function(){
 
   write.csv(
     df_master_residence_year,
-    here::here("01_data", "intermediate", "covariates", "residenceyear_master.csv"),
+    here::here("01_data", "intermediate", "covariates", "residenceyear.csv"),
     fileEncoding = "cp932", 
     row.names = FALSE)
 
@@ -59,7 +59,7 @@ read_residence_year <- function(year_i){
   
   if(year_i == 2000){
     
-  df_raw <- read.csv(here::here("01_data", "raw", "residence_year", "2000.csv"), fileEncoding = "CP932")
+    df_raw <- read.csv(here::here("01_data", "raw", "residence_year", "2000.csv"), fileEncoding = "CP932")
     
     df_output <- df_raw |> 
       dplyr::select(
@@ -159,3 +159,6 @@ adjust_city_id <- function(id_n, df, df_merger, list_vars){
   return(output_data)
   
 }
+
+
+main()

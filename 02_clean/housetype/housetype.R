@@ -39,7 +39,7 @@ main <- function() {
 
   write.csv(
     df_master_housetype,
-    here::here("01_data", "intermediate", "covariates", "housetype_master.csv"),
+    here::here("01_data", "intermediate", "covariates", "housetype.csv"),
     fileEncoding = "cp932", 
     row.names = FALSE)
 
@@ -232,3 +232,6 @@ adjust_city_id <- function(id_i, df, df_merger, list_vars){
   return(output_data)
   
 }
+
+
+main()

@@ -61,21 +61,3 @@ read_density <- function(year_i) {
   
   return(df_raw)
 }
-
-
-df |> 
-filter(year == 2018) |> 
-dplyr::mutate(density = as.numeric(density)) |>  
-arrange(density) |>
-mutate(
-    rank = row_number()
-) |> View()
-
-df_jr |> 
-filter(year == 2018) |> 
-dplyr::mutate(density = as.numeric(density)) |>
-arrange(density) |>
-mutate(
-    rank = row_number()
-) |> View()
-
