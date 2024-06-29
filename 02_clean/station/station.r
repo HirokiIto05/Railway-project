@@ -14,14 +14,69 @@ main <- function() {
     # 01_data/raw/not_table_data/continue.pdf
     # 01_data/raw/not_table_data/jr
     # 上記から転記
-    df_control <- readxl::read_xlsx(here::here("01_data", "raw", "station_data", "control.xlsx"))
+    # df_control <- readxl::read_xlsx(here::here("01_data", "raw", "station_data", "control.xlsx"))
 
-    df_control <- clean_control(df_control)
+    # df_control <- clean_control(df_control)
 
     list_line_control <- df_control |>
         dplyr::select(line_name) |>
         dplyr::distinct() |>
         dplyr::pull()
+
+    df_density <- read.csv(
+      here::here("01_data", "intermediate", "railway", "density.csv"),
+      fileEncoding = "cp932")
+
+    df_density |> View()
+
+    list_local_density <- df_density |>
+      summarise(
+        density = mean(density, na.rm = TRUE),
+        .by = c(company_name, line_name)
+      ) |>
+      dplyr::filter(
+        density <= 1000
+      ) |>  
+      distinct(company_name) |>
+      pull()
+    
+    list_jr_density <- df_density |>
+      summarise(
+        density = mean(density, na.rm = TRUE),
+        .by = c(company_name, line_name)
+      ) |>
+      dplyr::filter(
+        density <= 1000
+      ) |>  
+      distinct(line_name) |>
+      pull()
+
+        # df_control <- df_geometry
+    df_geometry |>  
+        dplyr::filter(
+          year_end %in% c(9999, 2019, 2020, 2021, 2022, 2023)
+        ) |> 
+        dplyr::mutate(
+          line_n = dplyr::n_distinct(line_name),
+          .by = city_id
+        ) |> 
+        dplyr::mutate(
+          end_n = dplyr::n_distinct(year_end),
+          .by = city_id
+        ) |> 
+        dplyr::filter(
+          line_n == 1
+        ) |> 
+        dplyr::filter(
+          (company_name  %in% list_local_density)|(line_name %in% list_jr_density)
+        ) |> 
+        distinct(city_id) 
+
+    list_jr_density
+
+    
+
+
 
     # --------------------------
     # Geometry data
@@ -39,8 +94,8 @@ clean_treatment <- function(df) {
         line_name = na_if(line_name, "〃")
         ) |> 
     # fill company name
-	tidyr::fill(company_name, .direction = 'down') |> 
-	tidyr::fill(line_name, .direction = 'down') |> 
+    tidyr::fill(company_name, .direction = 'down') |> 
+    tidyr::fill(line_name, .direction = 'down') |> 
     # change date
     mutate(
         across(year:day, as.character),
@@ -50,7 +105,7 @@ clean_treatment <- function(df) {
         date, .before = company_name
     ) |>
     dplyr::filter(
-        year <=2014
+        year <= 2014
     )
 
     return(df)
@@ -93,15 +148,13 @@ clean_geometry <- function(df) {
 }
 
 
-
-
 extract_treated_municipalities <- function(df_geometry, df_treatment) {
 
     # list treatment railway lines
     list_line_treatment <- df_treatment |>
-        dplyr::select(line_name) |>
-        dplyr::distinct() |>
-        dplyr::pull()
+      dplyr::select(line_name) |>
+      dplyr::distinct() |>
+      dplyr::pull()
 
     # list control railway lines
     list_line_control <- df_control |>
@@ -109,32 +162,63 @@ extract_treated_municipalities <- function(df_geometry, df_treatment) {
         dplyr::distinct() |>
         dplyr::pull()
 
-    df_station_treated <- df_geometry |>
-      dplyr::filter(
-        line_name %in% list_line_treatment,
-        year_end != 9999,
-        between(year_end, 2000, 2014))
-
       # 各自治体に何本の路線が通っているか数える。(過去も含む) 
       # 1のもののみを抽出
       # その中で、廃線している路線を抽出
-      df_geometry |> 
-        distinct(line_name, city_name, city_id) |>
-        group_by(city_name) |>
+    df_treatment <- df_geometry |> 
+        dplyr::filter(
+          between(year_end, 1999, 2014)| year_end %in% c(9999, 2019, 2020, 2021, 2022, 2023)
+        ) |> 
         dplyr::mutate(
-            line_n = dplyr::n_distinct(line_name)
+          line_n = dplyr::n_distinct(line_name),
+          .by = city_id
         ) |> 
-        dplyr::ungroup() |> 
-        dplyr::filter(
-            line_n == 1
+        dplyr::mutate(
+          year_end_n = dplyr::n_distinct(year_end),
+          .by = city_id
+        ) |> 
+        dplyr::mutate(
+          continue = any(year_end %in% c(9999, 2019, 2020, 2021, 2022, 2023)),
+          .by = city_id
         ) |> 
         dplyr::filter(
-            # !line_name %in% list_line_treatment
-            line_name %in% list_line_control
-        ) |> distinct(city_name, line_name) |> View()
+          year_end != 9999,
+          line_n == 1,
+          continue == FALSE
+          # year_end_n == 1
+        ) |> 
+        dplyr::filter(
+            line_name %in% list_line_treatment
+        ) |> 
+        distinct(city_name, line_name, year_end) |>  View()
+    
 
-      df_control_city_new <- df_geometry |>
-        dplyr::filter(year_end  %in% c(9999, 2019, 2020, 2021, 2022, 2023)) |>
+    # df_control <- df_geometry
+    df_geometry |>  
+        dplyr::filter(
+          year_end %in% c(9999, 2019, 2020, 2021, 2022, 2023)
+        ) |> 
+        dplyr::mutate(
+          line_n = dplyr::n_distinct(line_name),
+          .by = city_id
+        ) |> 
+        dplyr::mutate(
+          end_n = dplyr::n_distinct(year_end),
+          .by = city_id
+        ) |> 
+        dplyr::filter(
+          line_n == 1
+        ) |> 
+
+
+
+        # distinct(line_name, city_name, city_id) |> View()
+
+        dplyr::mutate(
+          year_end_n = dplyr::n_distinct(year_end),
+          .by = city_id
+        )
+
         distinct(line_name, city_name, city_id, company_name) |>  
         group_by(city_name) |>
         dplyr::mutate(
@@ -163,28 +247,7 @@ df_geometry |>
   group_by(city_name) |>
   mutate(
     n = dplyr::n_distinct(company_name)
-  ) |>  
-  ungroup() |>
-  View()
-
-      a <- df_geometry |> dplyr::filter(line_name == "本線") |>
-        distinct(city_name) |> arrange(city_name) |> pull()
-
-      list_a <- df_control_city_new |> 
-        dplyr::filter(company_name != "東海旅客鉄道（旧国鉄）") |>
-        dplyr::distinct(city_name) |> 
-        dplyr::pull()
-
-      sort(setdiff(list_a, list_old))
-      setdiff(list_old, list_a)
-      df_geometry |> View()
-
-     df_control_city_new  |>
-      dplyr::summarise(
-            n = dplyr::n_distinct(company_name),
-            .by = c(city_id, city_name)
-        ) |> 
-        dplyr::filter(n != 1) |> View()
+  )
 
 
 
@@ -232,6 +295,16 @@ df_geometry |>
   return(df_output)
 
 }
+
+
+list_low_density <- df_density |> 
+  summarise(
+    density = mean(density, na.rm = TRUE),
+    .by = c(company_name, line_name)
+  ) |>
+  dplyr::filter(
+    density <= 2000
+  )
 
 
 
@@ -384,4 +457,33 @@ df_geometry |> dplyr::filter(
   n_station = dplyr::n()
   ) |>
   ungroup() |>  View()
+
+
+df_treatment |> View()
+
+
+  a <- df_treatment |> 
+      mutate(
+        railway_revenue = NA,
+        railway_pl = NA,
+        operation_revenue = NA,
+        operation_pl = NA,
+        all_sector_pl = NA,
+        total_pl = NA,
+        total_asset = NA,
+        total_debt = NA,
+        total_capital = NA
+      ) |>
+    select(
+      company_name, line_name, date, length, railway_revenue, railway_pl, operation_revenue, operation_pl, all_sector_pl, total_pl, total_asset, total_debt, total_capital
+    )
+    tidyr::pivot_longer(
+      cols = -c(date, company_name, line_name, length),
+      names_to = "variable",
+      values_to = "value"
+    ) 
+
+
+
+
 
