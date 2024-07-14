@@ -5,8 +5,8 @@ main <- function(){
     df <- purrr::map(
         list_year,
         read_density
-    ) |>
-    dplyr::bind_rows()
+      ) |>
+      bind_rows()
 
     # adjust line name
     df <- clean_density(df)
@@ -15,9 +15,11 @@ main <- function(){
         clean_jr_density()
 
     df_density <- df |>
-        dplyr::bind_rows(df_jr)
+        dplyr::bind_rows(df_jr) |>
+        mutate(
+            across(c(year, density), as.numeric)
+        )
 
-    
     # Treatment denesity data
     df_density_treatment <- readxl::read_xlsx(here::here("01_data", "raw", "density", "treatment.xlsx")) |>
         clean_density_treatment()
@@ -27,9 +29,10 @@ main <- function(){
         dplyr::filter(
             continue == 0,
             year_end == max(year_end),
-            .by = line_name) |> 
-        summarise(
-            a = mean(density_end, na.rm = TRUE))
+            .by = line_name) 
+        # summarise(
+        #     a = mean(density_end, na.rm = TRUE)
+        #     )
     
     write.csv(
         df_density, 
@@ -64,17 +67,12 @@ read_density <- function(year_i) {
 clean_jr_density <- function(df_jr) {
 
     df_jr <- df_jr |>
-                dplyr::select(
-            "line_name" = 1,
+      select(
+            line_name = 1,
             everything()
-        ) |>
-	dplyr::rename_with(
-        ~ stringr::str_sub(.x, start = 1, end = 4),
-        cols = starts_with("20") 
-        ) |>
-    dplyr::rename(
-        line_name = line
-    ) |>
+        ) 
+
+    df_jr <- df_jr |>
     dplyr::mutate(
         across(-line_name, as.numeric)
         ) |>
@@ -82,7 +80,7 @@ clean_jr_density <- function(df_jr) {
         cols = -line_name,
         names_to = "year",
         values_to = "density"
-    ) |> 
+    )  |> 
     mutate(
         company_name = if_else(
             stringr::str_detect(line_name, "旅客鉄道"),
@@ -90,9 +88,13 @@ clean_jr_density <- function(df_jr) {
             as.character(NA)
             ),
         .before = line_name
-    ) |> 
+        ) |> 
     fill(company_name, .direction = "down") |>
     dplyr::filter(line_name != company_name) |>
+    mutate(
+        across(everything(), as.character),
+        jr = 1
+        ) |>
     mutate(across(everything(), as.character))
 
     return(df_jr)
@@ -122,18 +124,20 @@ clean_density <- function(df) {
             "-|0")
         ) |>
     mutate(across(everything(), as.character)) %>%
-    mutate(across(everything(), ~str_replace_all(., "　", "")))
+    mutate(
+        across(everything(), ~str_replace_all(., "　", "")),
+        jr = "0"
+    )
 
     return(df)
 
 }
 
-
 clean_density_treatment <- function(df){
 
     df <- df |>
         mutate(
-            across(everything(), as.character)
+            across(everything(), as.character),
         ) |>
         tidyr::pivot_longer(
             cols = -c(company_name, line_name, year, date, length, continue),

@@ -1,0 +1,89 @@
+
+```{r}
+
+df_pop <- read.csv(here::here("01_data", "intermediate", "outcome", "population.csv"), fileEncoding = "cp932")
+
+df_treatment <- df_geometry |> 
+# dplyr::filter(
+#   between(year_end, 1999, 2014)| year_end %in% c(9999, 2019, 2020, 2021, 2022, 2023),
+# ) |> 
+dplyr::filter(
+  company_name %in% list_company_treatment & line_name %in% list_line_treatment,
+  between(year_end, 1999, 2014)
+)
+
+```
+
+
+```{r}
+df_pop |> glimpse()
+
+df_treated <- df_treatment |>
+    select(city_id, year_end)
+
+list_treatment <- df_treatment |>
+    distinct(city_id) |>
+    pull(city_id)
+
+df <- df_pop |>
+    mutate(
+        treatment = case_when(
+            city_id %in% list_treatment ~ 1,
+            city_id %in% list_control ~ 0,
+            .default = NA
+        )
+    ) |> 
+    dplyr::filter(!is.na(treatment)) |>
+    left_join(df_treated, by = "city_id") |> 
+    distinct() |> 
+    mutate(
+        after = year - year_end,
+        after = if_else(
+            is.na(after), -1000, after
+        )
+    )
+    dplyr::filter(
+        between(after, -9, 13) | after == -1000
+    )
+df |> View()
+summarise(
+    df,
+    n = n_distinct(city_id),
+    .by = c("treatment", "after")
+) |> View()
+
+fixest::feols(social_rate ~ i() | city_id + year, data = df) |>
+    modelsummary::msummary()
+
+
+a <- fixest::feols(social_rate ~ i(after, ref = c(-1, -1000)) | city_id + year, df) 
+
+
+a |>modelsummary::msummary(statistic = 'p.value')
+
+iplot(a)
+
+
+data(base_did)
+data(base_stagg)
+base_did |> View()
+base_stagg |> View()
+
+
+```
+
+
+```{r}
+
+df |>
+summarise(
+    rate = mean(social_rate),
+    .by = c("treatment", "year")
+) |> 
+ ggplot(aes(x = year, y = rate, color = as.factor(treatment))) +
+    geom_line() +
+    # geom_vline(xintercept = 0, linetype = "dashed") +
+    theme_minimal()
+
+
+```
